@@ -7,15 +7,31 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+#include "model.h"
 
 const char* vertexShaderSource = R"(
 #version 330 core
 layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec3 aNormal;
+layout (location = 2) in vec2 aTexCoords;
+
+out vec3 FragPos;
+out vec3 Normal;
+out vec2 TexCoords;
+
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
+
 void main() {
-    gl_Position = projection * view * model * vec4(aPos, 1.0);
+    FragPos = vec3(model * vec4(aPos, 1.0));
+    Normal = mat3(transpose(inverse(model))) * aNormal;
+    TexCoords = aTexCoords;
+
+    gl_Position = projection * view * vec4(FragPos, 1.0);
 }
 )";
 
@@ -52,7 +68,7 @@ GLuint createShaderProgram() {
 void setupGLFW();
 GLFWwindow* createWindow(int width, int height, const char* title);
 void setupImGui(GLFWwindow* window);
-void renderLoop(GLFWwindow* window, GLuint shaderProgram, GLuint VAO);
+void renderLoop(GLFWwindow* window, GLuint shaderProgram, Model myModel);
 GLuint setupCube();
 
 GLuint fbo, fboTexture, rbo;
@@ -86,9 +102,11 @@ int main() {
 
     setupImGui(window);
     GLuint shaderProgram = createShaderProgram();
-    GLuint VAO = setupCube();
     setupFramebuffer(512, 512);
-    renderLoop(window, shaderProgram, VAO);
+
+    Model myModel("../assets/Suzanne.blend");
+
+    renderLoop(window, shaderProgram, myModel);
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -155,7 +173,7 @@ GLuint setupCube() {
     return VAO;
 }
 
-void renderLoop(GLFWwindow* window, GLuint shaderProgram, GLuint VAO) {
+void renderLoop(GLFWwindow* window, GLuint shaderProgram, Model myModel) {
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -186,8 +204,7 @@ void renderLoop(GLFWwindow* window, GLuint shaderProgram, GLuint VAO) {
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
         
-        glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+        myModel.Draw();
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind the framebuffer
 

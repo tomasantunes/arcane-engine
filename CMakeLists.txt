@@ -6,17 +6,21 @@ set(CMAKE_CXX_STANDARD 17)
 # Find required packages
 find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
+find_package(assimp REQUIRED)
 
 # Include directories
 include_directories(
     imgui
     imgui/backends
     /usr/include
+    assets
 )
 
 # Source files
 set(SOURCES
     src/main.cpp
+    src/model.h
+    src/model.cpp
     imgui/imgui.cpp
     imgui/imgui_draw.cpp
     imgui/imgui_widgets.cpp
@@ -29,4 +33,4 @@ set(SOURCES
 add_executable(ArcaneEngine ${SOURCES})
 
 # Link libraries
-target_link_libraries(ArcaneEngine PRIVATE glfw OpenGL::GL GLU GLEW)
+target_link_libraries(ArcaneEngine PRIVATE glfw OpenGL::GL GLU GLEW assimp::assimp)

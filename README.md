@@ -3,7 +3,7 @@
 
 ## Install requisites
 ```
-sudo apt install build-essential cmake git libglfw3-dev libglew-dev libglm-dev
+sudo apt install build-essential cmake git libglfw3-dev libglew-dev libglm-dev libassimp-dev
 ```
 
 ## Build and Run
