@@ -10,13 +10,14 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include "graphics/scene.h"
 #include "graphics/model.h"
 #include "graphics/shader.h"
 
 void setupGLFW();
 GLFWwindow* createWindow(int width, int height, const char* title);
 void setupImGui(GLFWwindow* window);
-void renderLoop(GLFWwindow* window, Shader shader, Model myModel);
+void renderLoop(GLFWwindow* window, Shader shader, Scene scene);
 
 GLuint fbo, fboTexture, rbo;
 void setupFramebuffer(int width, int height) {
@@ -53,9 +54,14 @@ int main() {
 
     setupFramebuffer(512, 512);
 
-    Model myModel("../assets/Suzanne.blend");
+    Scene myScene;
+    Model myModel1("../assets/Suzanne.blend");
+    Model myModel2("../assets/Suzanne.blend");
+    myModel2.translate(glm::vec3(3.0f, 0.0f, 0.0f));
+    myScene.AddModel(myModel1);
+    myScene.AddModel(myModel2);
 
-    renderLoop(window, myShader, myModel);
+    renderLoop(window, myShader, myScene);
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -100,7 +106,7 @@ void setupImGui(GLFWwindow* window) {
     ImGui_ImplOpenGL3_Init("#version 330");
 }
 
-void renderLoop(GLFWwindow* window, Shader shader, Model myModel) {
+void renderLoop(GLFWwindow* window, Shader shader, Scene scene) {
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -124,8 +130,8 @@ void renderLoop(GLFWwindow* window, Shader shader, Model myModel) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glUseProgram(shader.Program);
-        glm::mat4 model = glm::rotate(glm::mat4(1.0f), (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
-        glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
+        glm::mat4 model = glm::mat4(1.0f);
+        glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -15.0f));
         glm::mat4 projection = glm::perspective(glm::radians(45.0f), 1.0f, 0.1f, 100.0f);
         
         GLint modelLoc = glGetUniformLocation(shader.Program, "model");
@@ -139,7 +145,9 @@ void renderLoop(GLFWwindow* window, Shader shader, Model myModel) {
         shader.setVec3("lightColor", lightColor);
         shader.setVec3("objectColor", objectColor);
         
-        myModel.Draw();
+        for (int i = 0; i < scene.models.size(); i++) {
+            scene.models[i].Draw(shader);
+        }
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind the framebuffer
 

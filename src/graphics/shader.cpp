@@ -85,3 +85,13 @@ void Shader::checkCompileErrors(GLuint shader, const std::string& type) {
 void Shader::setVec3(const std::string& name, const glm::vec3& value) const {
     glUniform3f(glGetUniformLocation(this->Program, name.c_str()), value.x, value.y, value.z);
 }
+
+void Shader::setMat4(const std::string& name, const glm::mat4& mat) const {
+    GLint location = glGetUniformLocation(this->Program, name.c_str());
+    if (location == -1) {
+        std::cerr << "Warning: Uniform '" << name << "' not found in shader!" << std::endl;
+        return;
+    }
+
+    glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(mat));
+}

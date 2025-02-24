@@ -1,3 +1,6 @@
+#ifndef MODEL_H
+#define MODEL_H
+
 #include <iostream>
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -6,6 +9,7 @@
 #include <glm/glm.hpp>
 #include <vector>
 #include <string>
+#include "shader.h"
 
 struct Vertex {
     glm::vec3 Position;
@@ -16,7 +20,9 @@ struct Vertex {
 class Model {
 public:
     Model(const std::string& path);
-    void Draw();
+    glm::mat4 transform;
+    void translate(glm::vec3 translation);
+    void Draw(Shader& shader);
 
 private:
     void LoadModel(const std::string& path);
@@ -27,3 +33,5 @@ private:
     std::vector<unsigned int> indices;
     GLuint VAO, VBO, EBO;
 };
+
+#endif

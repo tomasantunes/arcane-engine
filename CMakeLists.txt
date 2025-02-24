@@ -22,6 +22,8 @@ set(SOURCES
     src/graphics/model.cpp
     src/graphics/shader.h
     src/graphics/shader.cpp
+    src/graphics/scene.h
+    src/graphics/scene.cpp
     imgui/imgui.cpp
     imgui/imgui_draw.cpp
     imgui/imgui_widgets.cpp
