@@ -10,66 +10,13 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-#include "model.h"
-
-const char* vertexShaderSource = R"(
-#version 330 core
-layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec3 aNormal;
-layout (location = 2) in vec2 aTexCoords;
-
-out vec3 FragPos;
-out vec3 Normal;
-out vec2 TexCoords;
-
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
-
-void main() {
-    FragPos = vec3(model * vec4(aPos, 1.0));
-    Normal = mat3(transpose(inverse(model))) * aNormal;
-    TexCoords = aTexCoords;
-
-    gl_Position = projection * view * vec4(FragPos, 1.0);
-}
-)";
-
-const char* fragmentShaderSource = R"(
-#version 330 core
-out vec4 FragColor;
-void main() {
-    FragColor = vec4(1.0, 0.0, 0.0, 1.0);
-}
-)";
-
-GLuint createShader(GLenum type, const char* source) {
-    GLuint shader = glCreateShader(type);
-    glShaderSource(shader, 1, &source, nullptr);
-    glCompileShader(shader);
-    return shader;
-}
-
-GLuint createShaderProgram() {
-    GLuint vertexShader = createShader(GL_VERTEX_SHADER, vertexShaderSource);
-    GLuint fragmentShader = createShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
-
-    GLuint shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-
-    return shaderProgram;
-}
+#include "graphics/model.h"
+#include "graphics/shader.h"
 
 void setupGLFW();
 GLFWwindow* createWindow(int width, int height, const char* title);
 void setupImGui(GLFWwindow* window);
-void renderLoop(GLFWwindow* window, GLuint shaderProgram, Model myModel);
-GLuint setupCube();
+void renderLoop(GLFWwindow* window, Shader shader, Model myModel);
 
 GLuint fbo, fboTexture, rbo;
 void setupFramebuffer(int width, int height) {
@@ -101,12 +48,14 @@ int main() {
     if (!window) return -1;
 
     setupImGui(window);
-    GLuint shaderProgram = createShaderProgram();
+
+    Shader myShader("shaders/default-vshader.glsl", "shaders/default-fshader.glsl");
+
     setupFramebuffer(512, 512);
 
     Model myModel("../assets/Suzanne.blend");
 
-    renderLoop(window, shaderProgram, myModel);
+    renderLoop(window, myShader, myModel);
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -151,29 +100,7 @@ void setupImGui(GLFWwindow* window) {
     ImGui_ImplOpenGL3_Init("#version 330");
 }
 
-GLuint setupCube() {
-    float vertices[] = {
-        -0.5f, -0.5f, -0.5f,  0.5f, -0.5f, -0.5f,  0.5f,  0.5f, -0.5f,  -0.5f,  0.5f, -0.5f, 
-        -0.5f, -0.5f,  0.5f,  0.5f, -0.5f,  0.5f,  0.5f,  0.5f,  0.5f,  -0.5f,  0.5f,  0.5f 
-    };
-    GLuint indices[] = {
-        0, 1, 2, 2, 3, 0,  4, 5, 6, 6, 7, 4,  0, 4, 7, 7, 3, 0,  1, 5, 6, 6, 2, 1,  3, 2, 6, 6, 7, 3,  0, 1, 5, 5, 4, 0
-    };
-    GLuint VAO, VBO, EBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    return VAO;
-}
-
-void renderLoop(GLFWwindow* window, GLuint shaderProgram, Model myModel) {
+void renderLoop(GLFWwindow* window, Shader shader, Model myModel) {
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -186,23 +113,31 @@ void renderLoop(GLFWwindow* window, GLuint shaderProgram, Model myModel) {
         ImGui::Text("Hello, World!");
         ImVec2 avail = ImGui::GetContentRegionAvail();
         ImVec2 size(512, 512); // Fixed size for the framebuffer
+
+        glm::vec3 lightPos(1.2f, 1.0f, 2.0f);    // Light position
+        glm::vec3 lightColor(1.0f, 1.0f, 1.0f);  // White light
+        glm::vec3 objectColor(1.0f, 0.5f, 0.2f); // Orange object
         
         // Bind framebuffer to render scene
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
         glViewport(0, 0, 512, 512);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glUseProgram(shaderProgram);
+        glUseProgram(shader.Program);
         glm::mat4 model = glm::rotate(glm::mat4(1.0f), (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
         glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
         glm::mat4 projection = glm::perspective(glm::radians(45.0f), 1.0f, 0.1f, 100.0f);
         
-        GLint modelLoc = glGetUniformLocation(shaderProgram, "model");
-        GLint viewLoc = glGetUniformLocation(shaderProgram, "view");
-        GLint projLoc = glGetUniformLocation(shaderProgram, "projection");
+        GLint modelLoc = glGetUniformLocation(shader.Program, "model");
+        GLint viewLoc = glGetUniformLocation(shader.Program, "view");
+        GLint projLoc = glGetUniformLocation(shader.Program, "projection");
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+        shader.setVec3("lightPos", lightPos);
+        shader.setVec3("lightColor", lightColor);
+        shader.setVec3("objectColor", objectColor);
         
         myModel.Draw();
 

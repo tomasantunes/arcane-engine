@@ -13,14 +13,15 @@ include_directories(
     imgui
     imgui/backends
     /usr/include
-    assets
 )
 
 # Source files
 set(SOURCES
     src/main.cpp
-    src/model.h
-    src/model.cpp
+    src/graphics/model.h
+    src/graphics/model.cpp
+    src/graphics/shader.h
+    src/graphics/shader.cpp
     imgui/imgui.cpp
     imgui/imgui_draw.cpp
     imgui/imgui_widgets.cpp
@@ -34,3 +35,16 @@ add_executable(ArcaneEngine ${SOURCES})
 
 # Link libraries
 target_link_libraries(ArcaneEngine PRIVATE glfw OpenGL::GL GLU GLEW assimp::assimp)
+
+# Create a 'shaders' directory in the build folder
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/shaders)
+
+# Copy GLSL files to the 'shaders' directory in the build folder
+file(GLOB SHADER_FILES "${CMAKE_SOURCE_DIR}/src/graphics/shaders/*.glsl")
+foreach(SHADER_FILE ${SHADER_FILES})
+    # Extract the filename (e.g., vertex_shader.glsl)
+    get_filename_component(SHADER_FILENAME ${SHADER_FILE} NAME)
+
+    # Configure the file to be copied to the 'shaders' directory
+    configure_file(${SHADER_FILE} ${CMAKE_BINARY_DIR}/shaders/${SHADER_FILENAME} COPYONLY)
+endforeach()
