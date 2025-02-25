@@ -18,12 +18,19 @@ include_directories(
 # Source files
 set(SOURCES
     src/main.cpp
+    src/constants.cpp
+    src/structs.cpp
+    src/general/EntityManager.cpp
+    src/general/ComponentManager.cpp
+    src/general/System.cpp
+    src/general/scene.h
+    src/general/scene.cpp
     src/graphics/model.h
     src/graphics/model.cpp
     src/graphics/shader.h
     src/graphics/shader.cpp
-    src/graphics/scene.h
-    src/graphics/scene.cpp
+    src/graphics/GraphicsComponents.cpp
+    src/graphics/RenderSystem.cpp
     imgui/imgui.cpp
     imgui/imgui_draw.cpp
     imgui/imgui_widgets.cpp

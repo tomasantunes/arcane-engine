@@ -10,14 +10,21 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-#include "graphics/scene.h"
+#include "structs.cpp"
+#include "constants.cpp"
+#include "general/EntityManager.cpp"
+#include "general/ComponentManager.cpp"
+#include "general/scene.h"
 #include "graphics/model.h"
 #include "graphics/shader.h"
+#include "graphics/GraphicsComponents.cpp"
+#include "graphics/RenderSystem.cpp"
+
 
 void setupGLFW();
 GLFWwindow* createWindow(int width, int height, const char* title);
 void setupImGui(GLFWwindow* window);
-void renderLoop(GLFWwindow* window, Shader shader, Scene scene);
+void renderLoop(GLFWwindow* window, Shader shader, RenderSystem renderSystem);
 
 GLuint fbo, fboTexture, rbo;
 void setupFramebuffer(int width, int height) {
@@ -54,14 +61,29 @@ int main() {
 
     setupFramebuffer(512, 512);
 
-    Scene myScene;
-    Model myModel1("../assets/Suzanne.blend");
-    Model myModel2("../assets/Suzanne.blend");
-    myModel2.translate(glm::vec3(3.0f, 0.0f, 0.0f));
-    myScene.AddModel(myModel1);
-    myScene.AddModel(myModel2);
+    EntityManager entityManager;
+    ComponentArray<TransformComponent> transformComponents;
+    ComponentArray<ModelComponent> modelComponents;
 
-    renderLoop(window, myShader, myScene);
+    RenderSystem renderSystem;
+    renderSystem.transformArray = &transformComponents;
+    renderSystem.modelArray = &modelComponents;
+
+    Entity monkey = entityManager.CreateEntity();
+
+    transformComponents.AddComponent(monkey, {
+        glm::mat4(1.0f), 
+        glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(1.0f, 1.0f, 1.0f),
+    });
+    Model myModel1("../assets/Suzanne.blend");
+    modelComponents.AddComponent(monkey, {&myModel1});
+
+    renderSystem.entities.insert(monkey);
+    
+
+    renderLoop(window, myShader, renderSystem);
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -106,7 +128,7 @@ void setupImGui(GLFWwindow* window) {
     ImGui_ImplOpenGL3_Init("#version 330");
 }
 
-void renderLoop(GLFWwindow* window, Shader shader, Scene scene) {
+void renderLoop(GLFWwindow* window, Shader shader, RenderSystem renderSystem) {
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -145,9 +167,8 @@ void renderLoop(GLFWwindow* window, Shader shader, Scene scene) {
         shader.setVec3("lightColor", lightColor);
         shader.setVec3("objectColor", objectColor);
         
-        for (int i = 0; i < scene.models.size(); i++) {
-            scene.models[i].Draw(shader);
-        }
+        renderSystem.shader = &shader;
+        renderSystem.Update(1.0f);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind the framebuffer
 
