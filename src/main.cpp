@@ -260,7 +260,7 @@ void renderLoop(GLFWwindow* window, Shader shader, RenderSystem renderSystem, En
         
         
         renderSystem.shader = &shader;
-        renderSystem.Update(1.0f);
+        renderSystem.Update(deltaTime);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind the framebuffer
 
