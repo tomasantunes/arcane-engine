@@ -20,10 +20,13 @@
 #include "graphics/shader.h"
 #include "graphics/GraphicsComponents.cpp"
 #include "graphics/RenderSystem.cpp"
-
+#include "graphics/Camera.cpp"
 
 int size_w = 1280;
 int size_h = 768;
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
+Camera camera;
 void setupGLFW();
 GLFWwindow* createWindow(int width, int height, const char* title);
 void setupImGui(GLFWwindow* window);
@@ -117,6 +120,50 @@ void setupImGui(GLFWwindow* window) {
     ImGui_ImplOpenGL3_Init("#version 330");
 }
 
+void processInput(float deltaTime) {
+    ImGuiIO& io = ImGui::GetIO();
+
+    if (ImGui::IsKeyDown(ImGuiKey_W)) // W key
+        camera.ProcessKeyboard(Camera::FORWARD, deltaTime);
+    if (ImGui::IsKeyDown(ImGuiKey_S)) // S key
+        camera.ProcessKeyboard(Camera::BACKWARD, deltaTime);
+    if (ImGui::IsKeyDown(ImGuiKey_A)) // A key
+        camera.ProcessKeyboard(Camera::LEFT, deltaTime);
+    if (ImGui::IsKeyDown(ImGuiKey_D)) // D key
+        camera.ProcessKeyboard(Camera::RIGHT, deltaTime);
+}
+
+void processMouseInput(const ImVec2& windowPos, const ImVec2& windowSize) {
+    ImGuiIO& io = ImGui::GetIO();
+
+    // Check if the mouse is inside the ImGui window
+    if (io.MousePos.x >= windowPos.x && io.MousePos.x <= windowPos.x + windowSize.x &&
+        io.MousePos.y >= windowPos.y && io.MousePos.y <= windowPos.y + windowSize.y) {
+        static bool firstMouse = true;
+        static float lastX = windowPos.x + windowSize.x / 2.0f;
+        static float lastY = windowPos.y + windowSize.y / 2.0f;
+
+        if (firstMouse) {
+            lastX = io.MousePos.x;
+            lastY = io.MousePos.y;
+            firstMouse = false;
+        }
+
+        float xoffset = io.MousePos.x - lastX;
+        float yoffset = lastY - io.MousePos.y; // Reversed since y-coordinates go from bottom to top
+
+        lastX = io.MousePos.x;
+        lastY = io.MousePos.y;
+
+        camera.ProcessMouseMovement(xoffset, yoffset);
+    }
+}
+
+void processMouseScroll() {
+    ImGuiIO& io = ImGui::GetIO();
+    camera.ProcessMouseScroll(io.MouseWheel);
+}
+
 void renderLoop(GLFWwindow* window, Shader shader, RenderSystem renderSystem, EntityManager* entityManager, ComponentArray<ModelComponent>* modelComponents, ComponentArray<TransformComponent>* transformComponents) {
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
@@ -177,6 +224,14 @@ void renderLoop(GLFWwindow* window, Shader shader, RenderSystem renderSystem, En
         ImVec2 avail = ImGui::GetContentRegionAvail();
         ImVec2 size(avail.x, avail.y); // Fixed size for the framebuffer
 
+        float currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
+        processInput(deltaTime);
+        processMouseInput(windowPos, windowSize);
+        processMouseScroll();
+
         glm::vec3 lightPos(1.2f, 1.0f, 2.0f);    // Light position
         glm::vec3 lightColor(1.0f, 1.0f, 1.0f);  // White light
         glm::vec3 objectColor(1.0f, 0.5f, 0.2f); // Orange object
@@ -188,8 +243,8 @@ void renderLoop(GLFWwindow* window, Shader shader, RenderSystem renderSystem, En
 
         glUseProgram(shader.Program);
         glm::mat4 model = glm::mat4(1.0f);
-        glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -15.0f));
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), 1.0f, 0.1f, 100.0f);
+        glm::mat4 view = camera.GetViewMatrix();
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)size.x / (float)size.y, 0.1f, 100.0f);
         
         GLint modelLoc = glGetUniformLocation(shader.Program, "model");
         GLint viewLoc = glGetUniformLocation(shader.Program, "view");
@@ -201,6 +256,8 @@ void renderLoop(GLFWwindow* window, Shader shader, RenderSystem renderSystem, En
         shader.setVec3("lightPos", lightPos);
         shader.setVec3("lightColor", lightColor);
         shader.setVec3("objectColor", objectColor);
+
+        
         
         renderSystem.shader = &shader;
         renderSystem.Update(1.0f);

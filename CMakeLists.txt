@@ -32,6 +32,7 @@ set(SOURCES
     src/graphics/shader.cpp
     src/graphics/GraphicsComponents.cpp
     src/graphics/RenderSystem.cpp
+    src/graphics/Camera.cpp
     imgui/imgui.cpp
     imgui/imgui_draw.cpp
     imgui/imgui_widgets.cpp
