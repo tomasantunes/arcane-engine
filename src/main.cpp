@@ -7,6 +7,7 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include "../lib/ImGuiFileDialog/ImGuiFileDialog.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -26,7 +27,7 @@ int size_h = 768;
 void setupGLFW();
 GLFWwindow* createWindow(int width, int height, const char* title);
 void setupImGui(GLFWwindow* window);
-void renderLoop(GLFWwindow* window, Shader shader, RenderSystem renderSystem);
+void renderLoop(GLFWwindow* window, Shader shader, RenderSystem renderSystem, EntityManager* entityManager, ComponentArray<ModelComponent>* modelComponents, ComponentArray<TransformComponent>* transformComponents);
 
 GLuint fbo, fboTexture, rbo;
 void setupFramebuffer(int width, int height) {
@@ -70,22 +71,8 @@ int main() {
     RenderSystem renderSystem;
     renderSystem.transformArray = &transformComponents;
     renderSystem.modelArray = &modelComponents;
-
-    Entity monkey = entityManager.CreateEntity();
-
-    transformComponents.AddComponent(monkey, {
-        glm::mat4(1.0f), 
-        glm::vec3(0.0f, 0.0f, 0.0f),
-        glm::vec3(0.0f, 0.0f, 0.0f),
-        glm::vec3(1.0f, 1.0f, 1.0f),
-    });
-    Model myModel1("../assets/Suzanne.blend");
-    modelComponents.AddComponent(monkey, {&myModel1});
-
-    renderSystem.entities.insert(monkey);
     
-
-    renderLoop(window, myShader, renderSystem);
+    renderLoop(window, myShader, renderSystem, &entityManager, &modelComponents, &transformComponents);
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -130,7 +117,7 @@ void setupImGui(GLFWwindow* window) {
     ImGui_ImplOpenGL3_Init("#version 330");
 }
 
-void renderLoop(GLFWwindow* window, Shader shader, RenderSystem renderSystem) {
+void renderLoop(GLFWwindow* window, Shader shader, RenderSystem renderSystem, EntityManager* entityManager, ComponentArray<ModelComponent>* modelComponents, ComponentArray<TransformComponent>* transformComponents) {
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
         
@@ -139,11 +126,49 @@ void renderLoop(GLFWwindow* window, Shader shader, RenderSystem renderSystem) {
         ImGui::StyleColorsLight();
         ImGui::NewFrame();
 
+        ImGui::SetNextWindowPos(ImVec2(0, 0));
+        ImGui::SetNextWindowSize(ImVec2(size_w, size_h));
+        ImGui::Begin("Main Window", nullptr, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoBringToFrontOnFocus);
+
+        if (ImGui::BeginMenuBar()) {
+            if (ImGui::BeginMenu("File")) {
+                if (ImGui::MenuItem("Import")) {
+                    IGFD::FileDialogConfig config;
+                    config.path = ".";
+                    ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".blend", config);
+                }
+                ImGui::EndMenu();
+            }
+        }
+        ImGui::EndMenuBar();
+
+        if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey")) {
+            if (ImGuiFileDialog::Instance()->IsOk()) { // action if OK
+                std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+                std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+
+                Entity openedFile = entityManager->CreateEntity();
+
+                transformComponents->AddComponent(openedFile, {
+                    glm::mat4(1.0f), 
+                    glm::vec3(0.0f, 0.0f, 0.0f),
+                    glm::vec3(0.0f, 0.0f, 0.0f),
+                    glm::vec3(1.0f, 1.0f, 1.0f),
+                });
+                Model myModel1(filePathName);
+                modelComponents->AddComponent(openedFile, {&myModel1});
+
+                renderSystem.entities.insert(openedFile);
+            }
+        
+            ImGuiFileDialog::Instance()->Close();
+        }
+
         glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         ImVec2 windowSize(500, 380);
-        ImVec2 windowPos(size_w / 2 - 250, 0);
+        ImVec2 windowPos(size_w / 2 - 250, 37);
 
         ImGui::SetNextWindowSize(windowSize);
         ImGui::SetNextWindowPos(windowPos);
@@ -185,6 +210,7 @@ void renderLoop(GLFWwindow* window, Shader shader, RenderSystem renderSystem) {
         // Render framebuffer texture inside ImGui container
         ImGui::Image((ImTextureID)(intptr_t)fboTexture, size, ImVec2(0, 1), ImVec2(1, 0));
         
+        ImGui::End();
         ImGui::End();
         
         ImGui::Render();

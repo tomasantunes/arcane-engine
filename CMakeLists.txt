@@ -13,6 +13,7 @@ include_directories(
     imgui
     imgui/backends
     /usr/include
+    lib
 )
 
 # Source files
@@ -37,6 +38,7 @@ set(SOURCES
     imgui/imgui_tables.cpp
     imgui/backends/imgui_impl_glfw.cpp
     imgui/backends/imgui_impl_opengl3.cpp
+    lib/ImGuiFileDialog/ImGuiFileDialog.cpp
 )
 
 # Executable
@@ -57,3 +59,4 @@ foreach(SHADER_FILE ${SHADER_FILES})
     # Configure the file to be copied to the 'shaders' directory
     configure_file(${SHADER_FILE} ${CMAKE_BINARY_DIR}/shaders/${SHADER_FILENAME} COPYONLY)
 endforeach()
+
