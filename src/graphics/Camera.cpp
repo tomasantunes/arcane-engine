@@ -6,12 +6,12 @@
 
 class Camera {
 public:
-    Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, -15.0f), 
+    Camera(glm::vec3 position = glm::vec3(0.0f, 10.0f, 10.0f), 
            glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), 
            float yaw = -90.0f, float pitch = 0.0f)
         : Position(position), WorldUp(up), Yaw(yaw), Pitch(pitch), 
           Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(2.5f), 
-          MouseSensitivity(0.5f), Zoom(45.0f) {
+          MouseSensitivity(0.1f), Zoom(45.0f) {
         updateCameraVectors();
     }
 

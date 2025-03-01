@@ -10,11 +10,13 @@ find_package(assimp REQUIRED)
 
 # Include directories
 include_directories(
-    imgui
-    imgui/backends
     /usr/include
-    lib
 )
+
+include_directories(${CMAKE_SOURCE_DIR}/lib/imgui)
+include_directories(${CMAKE_SOURCE_DIR}/lib/imgui/backends)
+include_directories(${CMAKE_SOURCE_DIR}/lib/ImGuiFileDialog)
+
 
 # Source files
 set(SOURCES
@@ -33,12 +35,15 @@ set(SOURCES
     src/graphics/GraphicsComponents.cpp
     src/graphics/RenderSystem.cpp
     src/graphics/Camera.cpp
-    imgui/imgui.cpp
-    imgui/imgui_draw.cpp
-    imgui/imgui_widgets.cpp
-    imgui/imgui_tables.cpp
-    imgui/backends/imgui_impl_glfw.cpp
-    imgui/backends/imgui_impl_opengl3.cpp
+    lib/imgui/imgui.cpp
+    lib/imgui/imgui_draw.cpp
+    lib/imgui/imgui_widgets.cpp
+    lib/imgui/imgui_tables.cpp
+    lib/imgui/backends/imgui_impl_glfw.h
+    lib/imgui/backends/imgui_impl_glfw.cpp
+    lib/imgui/backends/imgui_impl_opengl3.h
+    lib/imgui/backends/imgui_impl_opengl3.cpp
+    lib/ImGuiFileDialog/ImGuiFileDialog.h
     lib/ImGuiFileDialog/ImGuiFileDialog.cpp
 )
 

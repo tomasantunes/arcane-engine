@@ -7,7 +7,7 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
-#include "../lib/ImGuiFileDialog/ImGuiFileDialog.h"
+#include "ImGuiFileDialog.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -26,11 +26,15 @@ int size_w = 1280;
 int size_h = 768;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+bool cameraActive = false; // Tracks whether the camera is active
+bool cursorLocked = false; // Tracks whether the cursor is locked
+double lastMouseX = 0.0, lastMouseY = 0.0; // Stores the last mouse position
 Camera camera;
+
 void setupGLFW();
 GLFWwindow* createWindow(int width, int height, const char* title);
 void setupImGui(GLFWwindow* window);
-void renderLoop(GLFWwindow* window, Shader shader, RenderSystem renderSystem, EntityManager* entityManager, ComponentArray<ModelComponent>* modelComponents, ComponentArray<TransformComponent>* transformComponents);
+void renderLoop(GLFWwindow* window, RenderSystem renderSystem, Shader* defaultShader, Shader* gridShader, EntityManager* entityManager, ComponentArray<ModelComponent>* modelComponents, ComponentArray<TransformComponent>* transformComponents);
 
 GLuint fbo, fboTexture, rbo;
 void setupFramebuffer(int width, int height) {
@@ -55,6 +59,22 @@ void setupFramebuffer(int width, int height) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void toggleCamera(GLFWwindow* window, bool activate) {
+    cameraActive = activate;
+    cursorLocked = activate;
+
+    if (activate) {
+        // Hide and lock the cursor
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+        // Store the initial mouse position
+        glfwGetCursorPos(window, &lastMouseX, &lastMouseY);
+    } else {
+        // Show and unlock the cursor
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    }
+}
+
 
 int main() {
     setupGLFW();
@@ -63,9 +83,10 @@ int main() {
 
     setupImGui(window);
 
-    Shader myShader("shaders/default-vshader.glsl", "shaders/default-fshader.glsl");
-
     setupFramebuffer(512, 512);
+
+    Shader defaultShader("shaders/default-vshader.glsl", "shaders/default-fshader.glsl");
+    Shader gridShader("shaders/grid-vshader.glsl", "shaders/grid-fshader.glsl");
 
     EntityManager entityManager;
     ComponentArray<TransformComponent> transformComponents;
@@ -74,8 +95,9 @@ int main() {
     RenderSystem renderSystem;
     renderSystem.transformArray = &transformComponents;
     renderSystem.modelArray = &modelComponents;
+    renderSystem.LoadGrid();
     
-    renderLoop(window, myShader, renderSystem, &entityManager, &modelComponents, &transformComponents);
+    renderLoop(window, renderSystem, &defaultShader, &gridShader, &entityManager, &modelComponents, &transformComponents);
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -133,38 +155,12 @@ void processInput(float deltaTime) {
         camera.ProcessKeyboard(Camera::RIGHT, deltaTime);
 }
 
-void processMouseInput(const ImVec2& windowPos, const ImVec2& windowSize) {
-    ImGuiIO& io = ImGui::GetIO();
-
-    // Check if the mouse is inside the ImGui window
-    if (io.MousePos.x >= windowPos.x && io.MousePos.x <= windowPos.x + windowSize.x &&
-        io.MousePos.y >= windowPos.y && io.MousePos.y <= windowPos.y + windowSize.y) {
-        static bool firstMouse = true;
-        static float lastX = windowPos.x + windowSize.x / 2.0f;
-        static float lastY = windowPos.y + windowSize.y / 2.0f;
-
-        if (firstMouse) {
-            lastX = io.MousePos.x;
-            lastY = io.MousePos.y;
-            firstMouse = false;
-        }
-
-        float xoffset = io.MousePos.x - lastX;
-        float yoffset = lastY - io.MousePos.y; // Reversed since y-coordinates go from bottom to top
-
-        lastX = io.MousePos.x;
-        lastY = io.MousePos.y;
-
-        camera.ProcessMouseMovement(xoffset, yoffset);
-    }
-}
-
 void processMouseScroll() {
     ImGuiIO& io = ImGui::GetIO();
     camera.ProcessMouseScroll(io.MouseWheel);
 }
 
-void renderLoop(GLFWwindow* window, Shader shader, RenderSystem renderSystem, EntityManager* entityManager, ComponentArray<ModelComponent>* modelComponents, ComponentArray<TransformComponent>* transformComponents) {
+void renderLoop(GLFWwindow* window, RenderSystem renderSystem, Shader* defaultShader, Shader* gridShader, EntityManager* entityManager, ComponentArray<ModelComponent>* modelComponents, ComponentArray<TransformComponent>* transformComponents) {
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
         
@@ -188,6 +184,7 @@ void renderLoop(GLFWwindow* window, Shader shader, RenderSystem renderSystem, En
             }
         }
         ImGui::EndMenuBar();
+        ImGui::End();
 
         if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey")) {
             if (ImGuiFileDialog::Instance()->IsOk()) { // action if OK
@@ -228,38 +225,41 @@ void renderLoop(GLFWwindow* window, Shader shader, RenderSystem renderSystem, En
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        processInput(deltaTime);
-        processMouseInput(windowPos, windowSize);
-        processMouseScroll();
+        if (ImGui::IsMouseClicked(0) && // Left mouse button clicked
+            ImGui::IsWindowHovered()) { // Mouse is inside the scene window
+            toggleCamera(window, true); // Activate the camera
+        }
 
-        glm::vec3 lightPos(1.2f, 1.0f, 2.0f);    // Light position
-        glm::vec3 lightColor(1.0f, 1.0f, 1.0f);  // White light
-        glm::vec3 objectColor(1.0f, 0.5f, 0.2f); // Orange object
+        if (cameraActive && ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+            toggleCamera(window, false); // Deactivate the camera
+        }
+
+        if (cameraActive) {
+            double mouseX, mouseY;
+            glfwGetCursorPos(window, &mouseX, &mouseY);
+        
+            float xoffset = mouseX - lastMouseX;
+            float yoffset = lastMouseY - mouseY; // Reversed since y-coordinates go from bottom to top
+        
+            lastMouseX = mouseX;
+            lastMouseY = mouseY;
+        
+            processInput(deltaTime);
+            camera.ProcessMouseMovement(xoffset, yoffset);
+            processMouseScroll();
+        }
+        
         
         // Bind framebuffer to render scene
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-        glViewport(0, 0, 512, 512);
+        glViewport(0, 0, 530, 530);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glUseProgram(shader.Program);
-        glm::mat4 model = glm::mat4(1.0f);
-        glm::mat4 view = camera.GetViewMatrix();
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)size.x / (float)size.y, 0.1f, 100.0f);
-        
-        GLint modelLoc = glGetUniformLocation(shader.Program, "model");
-        GLint viewLoc = glGetUniformLocation(shader.Program, "view");
-        GLint projLoc = glGetUniformLocation(shader.Program, "projection");
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
-        shader.setVec3("lightPos", lightPos);
-        shader.setVec3("lightColor", lightColor);
-        shader.setVec3("objectColor", objectColor);
-
-        
-        
-        renderSystem.shader = &shader;
+        renderSystem.camera = &camera;
+        renderSystem.size = glm::vec2(size.x, size.y);
+        renderSystem.gridShader = gridShader;
+        renderSystem.DrawGrid(deltaTime);
+        renderSystem.shader = defaultShader;
         renderSystem.Update(deltaTime);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind the framebuffer
@@ -267,7 +267,6 @@ void renderLoop(GLFWwindow* window, Shader shader, RenderSystem renderSystem, En
         // Render framebuffer texture inside ImGui container
         ImGui::Image((ImTextureID)(intptr_t)fboTexture, size, ImVec2(0, 1), ImVec2(1, 0));
         
-        ImGui::End();
         ImGui::End();
         
         ImGui::Render();
