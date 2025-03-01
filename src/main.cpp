@@ -177,7 +177,6 @@ void renderLoop(GLFWwindow* window, RenderSystem renderSystem, Shader* defaultSh
             if (ImGui::BeginMenu("File")) {
                 if (ImGui::MenuItem("Import")) {
                     IGFD::FileDialogConfig config;
-                    config.path = ".";
                     ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".blend", config);
                 }
                 ImGui::EndMenu();
@@ -186,7 +185,7 @@ void renderLoop(GLFWwindow* window, RenderSystem renderSystem, Shader* defaultSh
         ImGui::EndMenuBar();
         ImGui::End();
 
-        if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey")) {
+        if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400), ImVec2(600, 400) )) {
             if (ImGuiFileDialog::Instance()->IsOk()) { // action if OK
                 std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
                 std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
