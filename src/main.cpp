@@ -21,6 +21,8 @@
 #include "graphics/RenderSystem.cpp"
 
 
+int size_w = 1280;
+int size_h = 768;
 void setupGLFW();
 GLFWwindow* createWindow(int width, int height, const char* title);
 void setupImGui(GLFWwindow* window);
@@ -52,7 +54,7 @@ void setupFramebuffer(int width, int height) {
 
 int main() {
     setupGLFW();
-    GLFWwindow* window = createWindow(1280, 720, "ArcaneEngine");
+    GLFWwindow* window = createWindow(size_w, size_h, "ArcaneEngine");
     if (!window) return -1;
 
     setupImGui(window);
@@ -131,16 +133,24 @@ void setupImGui(GLFWwindow* window) {
 void renderLoop(GLFWwindow* window, Shader shader, RenderSystem renderSystem) {
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
+        ImGui::StyleColorsLight();
         ImGui::NewFrame();
+
+        glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        ImVec2 windowSize(500, 380);
+        ImVec2 windowPos(size_w / 2 - 250, 0);
+
+        ImGui::SetNextWindowSize(windowSize);
+        ImGui::SetNextWindowPos(windowPos);
         
-        ImGui::Begin("Container");
-        ImGui::Text("Hello, World!");
+        ImGui::Begin("Scene");
         ImVec2 avail = ImGui::GetContentRegionAvail();
-        ImVec2 size(512, 512); // Fixed size for the framebuffer
+        ImVec2 size(avail.x, avail.y); // Fixed size for the framebuffer
 
         glm::vec3 lightPos(1.2f, 1.0f, 2.0f);    // Light position
         glm::vec3 lightColor(1.0f, 1.0f, 1.0f);  // White light
@@ -178,6 +188,9 @@ void renderLoop(GLFWwindow* window, Shader shader, RenderSystem renderSystem) {
         ImGui::End();
         
         ImGui::Render();
+
+        glClearColor(0.75f, 0.75f, 0.75f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         glfwSwapBuffers(window);
