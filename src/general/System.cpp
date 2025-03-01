@@ -1,3 +1,6 @@
+#ifndef SYSTEM_CPP
+#define SYSTEM_CPP
+
 #include <set>
 #include "../structs.cpp"
 
@@ -6,3 +9,5 @@ public:
     std::set<Entity> entities;
     virtual void Update(float dt) = 0;
 };
+
+#endif

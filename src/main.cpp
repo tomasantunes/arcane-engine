@@ -21,6 +21,7 @@
 #include "graphics/GraphicsComponents.cpp"
 #include "graphics/RenderSystem.cpp"
 #include "graphics/Camera.cpp"
+#include "general/EntityDataComponents.cpp"
 
 int size_w = 1280;
 int size_h = 768;
@@ -29,12 +30,14 @@ float lastFrame = 0.0f;
 bool cameraActive = false; // Tracks whether the camera is active
 bool cursorLocked = false; // Tracks whether the cursor is locked
 double lastMouseX = 0.0, lastMouseY = 0.0; // Stores the last mouse position
+static int selected_entity = 0;
 Camera camera;
+Scene scene;
 
 void setupGLFW();
 GLFWwindow* createWindow(int width, int height, const char* title);
 void setupImGui(GLFWwindow* window);
-void renderLoop(GLFWwindow* window, RenderSystem renderSystem, Shader* defaultShader, Shader* gridShader, EntityManager* entityManager, ComponentArray<ModelComponent>* modelComponents, ComponentArray<TransformComponent>* transformComponents);
+void renderLoop(GLFWwindow* window, RenderSystem renderSystem, Shader* defaultShader, Shader* gridShader, EntityManager* entityManager, ComponentArray<ModelComponent>* modelComponents, ComponentArray<TransformComponent>* transformComponents, ComponentArray<EntityDataComponent>* entityDataComponents);
 
 GLuint fbo, fboTexture, rbo;
 void setupFramebuffer(int width, int height) {
@@ -91,13 +94,16 @@ int main() {
     EntityManager entityManager;
     ComponentArray<TransformComponent> transformComponents;
     ComponentArray<ModelComponent> modelComponents;
+    ComponentArray<EntityDataComponent> entityDataComponents;
 
     RenderSystem renderSystem;
     renderSystem.transformArray = &transformComponents;
     renderSystem.modelArray = &modelComponents;
     renderSystem.LoadGrid();
+
+    scene.entityDataArray = &entityDataComponents;
     
-    renderLoop(window, renderSystem, &defaultShader, &gridShader, &entityManager, &modelComponents, &transformComponents);
+    renderLoop(window, renderSystem, &defaultShader, &gridShader, &entityManager, &modelComponents, &transformComponents, &entityDataComponents);
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -160,7 +166,30 @@ void processMouseScroll() {
     camera.ProcessMouseScroll(io.MouseWheel);
 }
 
-void renderLoop(GLFWwindow* window, RenderSystem renderSystem, Shader* defaultShader, Shader* gridShader, EntityManager* entityManager, ComponentArray<ModelComponent>* modelComponents, ComponentArray<TransformComponent>* transformComponents) {
+void ShowSceneEntities() {
+    std::vector<EntityDataComponent*> components = scene.ListEntityData();
+    std::vector<const char*> items;
+
+    for (EntityDataComponent* c : components) {
+        items.push_back(c->title.c_str());
+    }
+
+    ImVec2 listboxSize(300, 300);
+    ImVec2 listboxPos(size_w - 300, 37);
+
+    ImGui::SetNextWindowSize(listboxSize);
+    ImGui::SetNextWindowPos(listboxPos);
+
+    ImGui::Begin("Scene Entities");
+    
+    if (ImGui::ListBox("Entities", &selected_entity, items.data(), items.size(), 4)) {
+        // This block is executed when the user selects an item
+    }
+    ImGui::End();
+    
+}
+
+void renderLoop(GLFWwindow* window, RenderSystem renderSystem, Shader* defaultShader, Shader* gridShader, EntityManager* entityManager, ComponentArray<ModelComponent>* modelComponents, ComponentArray<TransformComponent>* transformComponents, ComponentArray<EntityDataComponent>* entityDataComponents) {
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
         
@@ -185,6 +214,8 @@ void renderLoop(GLFWwindow* window, RenderSystem renderSystem, Shader* defaultSh
         ImGui::EndMenuBar();
         ImGui::End();
 
+        ShowSceneEntities();
+
         if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400), ImVec2(600, 400) )) {
             if (ImGuiFileDialog::Instance()->IsOk()) { // action if OK
                 std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
@@ -200,7 +231,9 @@ void renderLoop(GLFWwindow* window, RenderSystem renderSystem, Shader* defaultSh
                 });
                 Model myModel1(filePathName);
                 modelComponents->AddComponent(openedFile, {&myModel1});
+                entityDataComponents->AddComponent(openedFile, {"Entity" + std::to_string(openedFile)});
 
+                scene.entities.insert(openedFile);
                 renderSystem.entities.insert(openedFile);
             }
         
