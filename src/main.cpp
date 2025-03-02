@@ -13,15 +13,16 @@
 #include <assimp/postprocess.h>
 #include "structs.cpp"
 #include "constants.cpp"
+#include "general/Engine.cpp"
 #include "general/EntityManager.cpp"
 #include "general/ComponentManager.cpp"
+#include "general/EntityDataComponents.cpp"
 #include "general/scene.h"
 #include "graphics/model.h"
 #include "graphics/shader.h"
 #include "graphics/GraphicsComponents.cpp"
 #include "graphics/RenderSystem.cpp"
 #include "graphics/Camera.cpp"
-#include "general/EntityDataComponents.cpp"
 
 int size_w = 1280;
 int size_h = 768;
@@ -31,13 +32,12 @@ bool cameraActive = false; // Tracks whether the camera is active
 bool cursorLocked = false; // Tracks whether the cursor is locked
 double lastMouseX = 0.0, lastMouseY = 0.0; // Stores the last mouse position
 static int selected_entity = 0;
-Camera camera;
-Scene scene;
+Engine engine;
 
 void setupGLFW();
 GLFWwindow* createWindow(int width, int height, const char* title);
 void setupImGui(GLFWwindow* window);
-void renderLoop(GLFWwindow* window, RenderSystem renderSystem, Shader* defaultShader, Shader* gridShader, EntityManager* entityManager, ComponentArray<ModelComponent>* modelComponents, ComponentArray<TransformComponent>* transformComponents, ComponentArray<EntityDataComponent>* entityDataComponents);
+void renderLoop(Engine engine);
 
 GLuint fbo, fboTexture, rbo;
 void setupFramebuffer(int width, int height) {
@@ -83,32 +83,46 @@ int main() {
     setupGLFW();
     GLFWwindow* window = createWindow(size_w, size_h, "ArcaneEngine");
     if (!window) return -1;
+    engine.window = window;
 
-    setupImGui(window);
+    setupImGui(engine.window);
 
     setupFramebuffer(512, 512);
 
+    Camera camera;
+    Scene scene;
+    engine.camera = &camera;
+    engine.scene = &scene;
+
     Shader defaultShader("shaders/default-vshader.glsl", "shaders/default-fshader.glsl");
     Shader gridShader("shaders/grid-vshader.glsl", "shaders/grid-fshader.glsl");
+
+    engine.defaultShader = &defaultShader;
+    engine.gridShader = &gridShader;
 
     EntityManager entityManager;
     ComponentArray<TransformComponent> transformComponents;
     ComponentArray<ModelComponent> modelComponents;
     ComponentArray<EntityDataComponent> entityDataComponents;
+    engine.entityManager = &entityManager;
+    engine.transformComponents = &transformComponents;
+    engine.modelComponents = &modelComponents;
+    engine.entityDataComponents = &entityDataComponents;
 
     RenderSystem renderSystem;
-    renderSystem.transformArray = &transformComponents;
-    renderSystem.modelArray = &modelComponents;
-    renderSystem.LoadGrid();
+    engine.renderSystem = &renderSystem;
+    engine.renderSystem->transformArray = engine.transformComponents;
+    engine.renderSystem->modelArray = engine.modelComponents;
+    engine.renderSystem->LoadGrid();
 
-    scene.entityDataArray = &entityDataComponents;
+    engine.scene->entityDataArray = engine.entityDataComponents;
     
-    renderLoop(window, renderSystem, &defaultShader, &gridShader, &entityManager, &modelComponents, &transformComponents, &entityDataComponents);
+    renderLoop(engine);
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
-    glfwDestroyWindow(window);
+    glfwDestroyWindow(engine.window);
     glfwTerminate();
     return 0;
 }
@@ -152,22 +166,22 @@ void processInput(float deltaTime) {
     ImGuiIO& io = ImGui::GetIO();
 
     if (ImGui::IsKeyDown(ImGuiKey_W)) // W key
-        camera.ProcessKeyboard(Camera::FORWARD, deltaTime);
+        engine.camera->ProcessKeyboard(Camera::FORWARD, deltaTime);
     if (ImGui::IsKeyDown(ImGuiKey_S)) // S key
-        camera.ProcessKeyboard(Camera::BACKWARD, deltaTime);
+        engine.camera->ProcessKeyboard(Camera::BACKWARD, deltaTime);
     if (ImGui::IsKeyDown(ImGuiKey_A)) // A key
-        camera.ProcessKeyboard(Camera::LEFT, deltaTime);
+        engine.camera->ProcessKeyboard(Camera::LEFT, deltaTime);
     if (ImGui::IsKeyDown(ImGuiKey_D)) // D key
-        camera.ProcessKeyboard(Camera::RIGHT, deltaTime);
+        engine.camera->ProcessKeyboard(Camera::RIGHT, deltaTime);
 }
 
 void processMouseScroll() {
     ImGuiIO& io = ImGui::GetIO();
-    camera.ProcessMouseScroll(io.MouseWheel);
+    engine.camera->ProcessMouseScroll(io.MouseWheel);
 }
 
 void ShowSceneEntities() {
-    std::vector<EntityDataComponent*> components = scene.ListEntityData();
+    std::vector<EntityDataComponent*> components = engine.scene->ListEntityData();
     std::vector<const char*> items;
 
     for (EntityDataComponent* c : components) {
@@ -189,8 +203,8 @@ void ShowSceneEntities() {
     
 }
 
-void renderLoop(GLFWwindow* window, RenderSystem renderSystem, Shader* defaultShader, Shader* gridShader, EntityManager* entityManager, ComponentArray<ModelComponent>* modelComponents, ComponentArray<TransformComponent>* transformComponents, ComponentArray<EntityDataComponent>* entityDataComponents) {
-    while (!glfwWindowShouldClose(window)) {
+void renderLoop(Engine engine) {
+    while (!glfwWindowShouldClose(engine.window)) {
         glfwPollEvents();
         
         ImGui_ImplOpenGL3_NewFrame();
@@ -221,20 +235,20 @@ void renderLoop(GLFWwindow* window, RenderSystem renderSystem, Shader* defaultSh
                 std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
                 std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
 
-                Entity openedFile = entityManager->CreateEntity();
+                Entity openedFile = engine.entityManager->CreateEntity();
 
-                transformComponents->AddComponent(openedFile, {
+                engine.transformComponents->AddComponent(openedFile, {
                     glm::mat4(1.0f), 
                     glm::vec3(0.0f, 0.0f, 0.0f),
                     glm::vec3(0.0f, 0.0f, 0.0f),
                     glm::vec3(1.0f, 1.0f, 1.0f),
                 });
                 Model myModel1(filePathName);
-                modelComponents->AddComponent(openedFile, {&myModel1});
-                entityDataComponents->AddComponent(openedFile, {"Entity" + std::to_string(openedFile)});
+                engine.modelComponents->AddComponent(openedFile, {&myModel1});
+                engine.entityDataComponents->AddComponent(openedFile, {"Entity" + std::to_string(openedFile)});
 
-                scene.entities.insert(openedFile);
-                renderSystem.entities.insert(openedFile);
+                engine.scene->entities.insert(openedFile);
+                engine.renderSystem->entities.insert(openedFile);
             }
         
             ImGuiFileDialog::Instance()->Close();
@@ -259,16 +273,16 @@ void renderLoop(GLFWwindow* window, RenderSystem renderSystem, Shader* defaultSh
 
         if (ImGui::IsMouseClicked(0) && // Left mouse button clicked
             ImGui::IsWindowHovered()) { // Mouse is inside the scene window
-            toggleCamera(window, true); // Activate the camera
+            toggleCamera(engine.window, true); // Activate the camera
         }
 
         if (cameraActive && ImGui::IsKeyPressed(ImGuiKey_Escape)) {
-            toggleCamera(window, false); // Deactivate the camera
+            toggleCamera(engine.window, false); // Deactivate the camera
         }
 
         if (cameraActive) {
             double mouseX, mouseY;
-            glfwGetCursorPos(window, &mouseX, &mouseY);
+            glfwGetCursorPos(engine.window, &mouseX, &mouseY);
         
             float xoffset = mouseX - lastMouseX;
             float yoffset = lastMouseY - mouseY; // Reversed since y-coordinates go from bottom to top
@@ -277,7 +291,7 @@ void renderLoop(GLFWwindow* window, RenderSystem renderSystem, Shader* defaultSh
             lastMouseY = mouseY;
         
             processInput(deltaTime);
-            camera.ProcessMouseMovement(xoffset, yoffset);
+            engine.camera->ProcessMouseMovement(xoffset, yoffset);
             processMouseScroll();
         }
         
@@ -287,12 +301,12 @@ void renderLoop(GLFWwindow* window, RenderSystem renderSystem, Shader* defaultSh
         glViewport(0, 0, 530, 530);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        renderSystem.camera = &camera;
-        renderSystem.size = glm::vec2(size.x, size.y);
-        renderSystem.gridShader = gridShader;
-        renderSystem.DrawGrid(deltaTime);
-        renderSystem.shader = defaultShader;
-        renderSystem.Update(deltaTime);
+        engine.renderSystem->camera = engine.camera;
+        engine.renderSystem->size = glm::vec2(size.x, size.y);
+        engine.renderSystem->gridShader = engine.gridShader;
+        engine.renderSystem->DrawGrid(deltaTime);
+        engine.renderSystem->shader = engine.defaultShader;
+        engine.renderSystem->Update(deltaTime);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind the framebuffer
 
@@ -307,7 +321,7 @@ void renderLoop(GLFWwindow* window, RenderSystem renderSystem, Shader* defaultSh
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        glfwSwapBuffers(window);
+        glfwSwapBuffers(engine.window);
     }
 }
 
