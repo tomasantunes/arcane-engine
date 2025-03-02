@@ -73,9 +73,3 @@ void Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) {
     }
 }
 
-/*
-void Model::translate(glm::vec3 translation) {
-    transform = glm::translate(transform, translation);
-}
-*/
-

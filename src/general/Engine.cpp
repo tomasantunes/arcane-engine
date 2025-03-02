@@ -7,6 +7,7 @@
 #include "EntityManager.cpp"
 #include "ComponentManager.cpp"
 #include "../graphics/RenderSystem.cpp"
+#include "../graphics/TransformSystem.cpp"
 #include "../graphics/Camera.cpp"
 #include "scene.h"
 
@@ -23,6 +24,7 @@ class Engine {
         ComponentArray<ModelComponent>* modelComponents;
         ComponentArray<EntityDataComponent>* entityDataComponents;
         RenderSystem* renderSystem;
+        TransformSystem* transformSystem;
         Camera* camera;
         Scene* scene;
     };

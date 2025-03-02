@@ -22,6 +22,7 @@
 #include "graphics/shader.h"
 #include "graphics/GraphicsComponents.cpp"
 #include "graphics/RenderSystem.cpp"
+#include "graphics/TransformSystem.cpp"
 #include "graphics/Camera.cpp"
 
 int size_w = 1280;
@@ -31,7 +32,8 @@ float lastFrame = 0.0f;
 bool cameraActive = false; // Tracks whether the camera is active
 bool cursorLocked = false; // Tracks whether the cursor is locked
 double lastMouseX = 0.0, lastMouseY = 0.0; // Stores the last mouse position
-static int selected_entity = 0;
+static int selected_entity_idx = 0;
+Entity selected_entity = 0;
 Engine engine;
 
 void setupGLFW();
@@ -115,6 +117,10 @@ int main() {
     engine.renderSystem->modelArray = engine.modelComponents;
     engine.renderSystem->LoadGrid();
 
+    TransformSystem transformSystem;
+    engine.transformSystem = &transformSystem;
+    engine.transformSystem->transformArray = engine.transformComponents;
+
     engine.scene->entityDataArray = engine.entityDataComponents;
     
     renderLoop(engine);
@@ -196,11 +202,64 @@ void ShowSceneEntities() {
 
     ImGui::Begin("Scene Entities");
     
-    if (ImGui::ListBox("Entities", &selected_entity, items.data(), items.size(), 4)) {
-        // This block is executed when the user selects an item
+    if (ImGui::ListBox("Entities", &selected_entity_idx, items.data(), items.size(), 4)) {
+        selected_entity = components[selected_entity_idx]->entity;
     }
     ImGui::End();
     
+}
+
+void ComponentEditor() {
+
+    ImVec2 componentEditorSize(300, 350);
+    ImVec2 componentEditorPos(size_w - 300, 337);
+
+    ImGui::SetNextWindowSize(componentEditorSize);
+    ImGui::SetNextWindowPos(componentEditorPos);
+
+    ImGui::Begin("Component Editor");
+
+    if (selected_entity != 0) {
+        // Transform Component
+        if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
+
+            TransformComponent* transform = engine.transformComponents->GetComponent(selected_entity);
+
+            float positionArray[3] = { transform->position.x, transform->position.y, transform->position.z };
+            float rotationArray[3] = { transform->rotation.x, transform->rotation.y, transform->rotation.z };
+            float scaleArray[3]    = { transform->scale.x, transform->scale.y, transform->scale.z };
+
+            // Create a box-like appearance using a child window
+            ImGui::BeginChild("TransformBox", ImVec2(0, 150), true);
+
+            // Position
+            ImGui::Text("Position");
+            ImGui::InputFloat3("##Position", positionArray);
+            if (ImGui::IsItemDeactivatedAfterEdit()) {
+                // Update the transform.position if the input values change
+                transform->position = glm::vec3(positionArray[0], positionArray[1], positionArray[2]);
+            }
+
+            // Rotation
+            ImGui::Text("Rotation");
+            ImGui::InputFloat3("##Rotation", rotationArray);
+            if (ImGui::IsItemDeactivatedAfterEdit()) {
+                // Update the transform.rotation if the input values change
+                transform->rotation = glm::vec3(rotationArray[0], rotationArray[1], rotationArray[2]);
+            }
+
+            // Scale
+            ImGui::Text("Scale");
+            ImGui::InputFloat3("##Scale", scaleArray);
+            if (ImGui::IsItemDeactivatedAfterEdit()) {
+                // Update the transform.scale if the input values change
+                transform->scale = glm::vec3(scaleArray[0], scaleArray[1], scaleArray[2]);
+            }
+
+            ImGui::EndChild();
+        }
+    }
+    ImGui::End();
 }
 
 void renderLoop(Engine engine) {
@@ -229,6 +288,7 @@ void renderLoop(Engine engine) {
         ImGui::End();
 
         ShowSceneEntities();
+        ComponentEditor();
 
         if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400), ImVec2(600, 400) )) {
             if (ImGuiFileDialog::Instance()->IsOk()) { // action if OK
@@ -245,10 +305,11 @@ void renderLoop(Engine engine) {
                 });
                 Model myModel1(filePathName);
                 engine.modelComponents->AddComponent(openedFile, {&myModel1});
-                engine.entityDataComponents->AddComponent(openedFile, {"Entity" + std::to_string(openedFile)});
+                engine.entityDataComponents->AddComponent(openedFile, {openedFile, "Entity" + std::to_string(openedFile)});
 
                 engine.scene->entities.insert(openedFile);
                 engine.renderSystem->entities.insert(openedFile);
+                engine.transformSystem->entities.insert(openedFile);
             }
         
             ImGuiFileDialog::Instance()->Close();
@@ -301,6 +362,7 @@ void renderLoop(Engine engine) {
         glViewport(0, 0, 530, 530);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        engine.transformSystem->Update(deltaTime);
         engine.renderSystem->camera = engine.camera;
         engine.renderSystem->size = glm::vec2(size.x, size.y);
         engine.renderSystem->gridShader = engine.gridShader;
