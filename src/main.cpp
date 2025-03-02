@@ -98,9 +98,11 @@ int main() {
 
     Shader defaultShader("shaders/default-vshader.glsl", "shaders/default-fshader.glsl");
     Shader gridShader("shaders/grid-vshader.glsl", "shaders/grid-fshader.glsl");
+    Shader lightShader("shaders/light-vshader.glsl", "shaders/light-fshader.glsl");
 
     engine.defaultShader = &defaultShader;
     engine.gridShader = &gridShader;
+    engine.lightShader = &lightShader;
 
     EntityManager entityManager;
     ComponentArray<TransformComponent> transformComponents;
@@ -119,6 +121,7 @@ int main() {
     engine.renderSystem->modelArray = engine.modelComponents;
     engine.renderSystem->pointLightArray = engine.pointLightComponents;
     engine.renderSystem->LoadGrid();
+    engine.renderSystem->LoadLight();
 
     TransformSystem transformSystem;
     engine.transformSystem = &transformSystem;
@@ -434,6 +437,8 @@ void renderLoop(Engine engine) {
         engine.renderSystem->size = glm::vec2(size.x, size.y);
         engine.renderSystem->gridShader = engine.gridShader;
         engine.renderSystem->DrawGrid(deltaTime);
+        engine.renderSystem->lightShader = engine.lightShader;
+        engine.renderSystem->DrawLight(deltaTime);
         engine.renderSystem->shader = engine.defaultShader;
         engine.renderSystem->Update(deltaTime);
 

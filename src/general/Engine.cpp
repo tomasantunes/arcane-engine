@@ -19,6 +19,7 @@ class Engine {
         GLFWwindow* window;
         Shader* defaultShader;
         Shader* gridShader;
+        Shader* lightShader;
         EntityManager* entityManager;
         ComponentArray<TransformComponent>* transformComponents;
         ComponentArray<ModelComponent>* modelComponents;

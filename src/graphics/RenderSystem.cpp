@@ -15,17 +15,20 @@ class RenderSystem : public System {
         ComponentArray<PointLightComponent>* pointLightArray;
         Shader* shader;
         Shader* gridShader;
+        Shader* lightShader;
         Camera* camera;
         glm::vec2 size;
         std::vector<float> gridVertices;
         GLuint gridVAO, gridVBO;
+        GLuint lightVAO, lightVBO;
     
         void Update(float dt) override {
             glm::vec3 lightPos;
             glm::vec3 lightColor;
+            PointLightComponent* light;
 
             for (Entity entity : entities) {
-                PointLightComponent* light = pointLightArray->GetComponent(entity);
+                light = pointLightArray->GetComponent(entity);
 
                 if (light) {
                     lightPos = light->position;
@@ -87,6 +90,29 @@ class RenderSystem : public System {
             glBindVertexArray(0);
         }
 
+        void LoadLight() {
+            float vertices[] = {
+                // Horizontal line
+                -0.5f,  0.0f, 0.0f,
+                 0.5f,  0.0f, 0.0f,
+        
+                // Vertical line
+                 0.0f, -0.5f, 0.0f,
+                 0.0f,  0.5f, 0.0f
+            };
+
+            glGenVertexArrays(1, &lightVAO);
+            glGenBuffers(1, &lightVBO);
+
+            glBindVertexArray(lightVAO);
+            glBindBuffer(GL_ARRAY_BUFFER, lightVBO);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+            // Set up vertex attribute pointers
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+            glEnableVertexAttribArray(0);
+        }
+
         void DrawGrid(float dt) {
             glUseProgram(gridShader->Program);
             glm::mat4 model = glm::mat4(1.0f);
@@ -100,6 +126,29 @@ class RenderSystem : public System {
             glBindVertexArray(gridVAO);
             glDrawArrays(GL_LINES, 0, gridVertices.size() / 3);
             glBindVertexArray(0);
+        }
+
+        void DrawLight(float dt) {
+            PointLightComponent* light;
+
+            for (Entity entity : entities) {
+                light = pointLightArray->GetComponent(entity);
+
+                if (light) {
+                    glUseProgram(lightShader->Program);
+                    glm::mat4 model = glm::translate(glm::mat4(1.0f), light->position);
+                    glm::mat4 view = camera->GetViewMatrix();
+                    glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)size.x / (float)size.y, 0.1f, 100.0f);
+                    lightShader->setMat4("model", model);
+                    lightShader->setMat4("view", view);
+                    lightShader->setMat4("projection", projection);
+
+                    glBindVertexArray(lightVAO);
+                    glDrawArrays(GL_LINES, 0, 4);
+                    break;
+                }
+            }
+            
         }
 };
 
