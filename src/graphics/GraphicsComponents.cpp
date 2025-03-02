@@ -15,4 +15,9 @@ struct ModelComponent {
     Model* model;
 };
 
+struct PointLightComponent {
+    glm::vec3 position;
+    glm::vec3 color;
+};
+
 #endif

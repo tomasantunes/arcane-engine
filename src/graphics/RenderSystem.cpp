@@ -12,6 +12,7 @@ class RenderSystem : public System {
     public:
         ComponentArray<TransformComponent>* transformArray;
         ComponentArray<ModelComponent>* modelArray;
+        ComponentArray<PointLightComponent>* pointLightArray;
         Shader* shader;
         Shader* gridShader;
         Camera* camera;
@@ -20,9 +21,20 @@ class RenderSystem : public System {
         GLuint gridVAO, gridVBO;
     
         void Update(float dt) override {
+            glm::vec3 lightPos;
+            glm::vec3 lightColor;
 
-            glm::vec3 lightPos(1.2f, 1.0f, 2.0f);    // Light position
-            glm::vec3 lightColor(1.0f, 1.0f, 1.0f);  // White light
+            for (Entity entity : entities) {
+                PointLightComponent* light = pointLightArray->GetComponent(entity);
+
+                if (light) {
+                    lightPos = light->position;
+                    lightColor = light->color;
+                    break;
+                }
+            }
+
+            
             glm::vec3 objectColor(1.0f, 0.5f, 0.2f); // Orange object
 
             glUseProgram(shader->Program);

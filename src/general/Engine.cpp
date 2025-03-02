@@ -23,6 +23,7 @@ class Engine {
         ComponentArray<TransformComponent>* transformComponents;
         ComponentArray<ModelComponent>* modelComponents;
         ComponentArray<EntityDataComponent>* entityDataComponents;
+        ComponentArray<PointLightComponent>* pointLightComponents;
         RenderSystem* renderSystem;
         TransformSystem* transformSystem;
         Camera* camera;

@@ -106,15 +106,18 @@ int main() {
     ComponentArray<TransformComponent> transformComponents;
     ComponentArray<ModelComponent> modelComponents;
     ComponentArray<EntityDataComponent> entityDataComponents;
+    ComponentArray<PointLightComponent> pointLightComponents;
     engine.entityManager = &entityManager;
     engine.transformComponents = &transformComponents;
     engine.modelComponents = &modelComponents;
     engine.entityDataComponents = &entityDataComponents;
+    engine.pointLightComponents = &pointLightComponents;
 
     RenderSystem renderSystem;
     engine.renderSystem = &renderSystem;
     engine.renderSystem->transformArray = engine.transformComponents;
     engine.renderSystem->modelArray = engine.modelComponents;
+    engine.renderSystem->pointLightArray = engine.pointLightComponents;
     engine.renderSystem->LoadGrid();
 
     TransformSystem transformSystem;
@@ -122,6 +125,16 @@ int main() {
     engine.transformSystem->transformArray = engine.transformComponents;
 
     engine.scene->entityDataArray = engine.entityDataComponents;
+
+    Entity light1 = engine.entityManager->CreateEntity();
+    engine.pointLightComponents->AddComponent(light1, {
+        glm::vec3(1.2f, 1.0f, 2.0f),
+        glm::vec3(1.0f, 1.0f, 1.0f)
+    });
+    engine.entityDataComponents->AddComponent(light1, {light1, "Light1"});
+
+    engine.scene->entities.insert(light1);
+    engine.renderSystem->entities.insert(light1);
     
     renderLoop(engine);
 
@@ -221,61 +234,96 @@ void ComponentEditor() {
 
     if (selected_entity != 0) {
         // Entity Data Component
-        if (ImGui::CollapsingHeader("Data", ImGuiTreeNodeFlags_DefaultOpen)) {
-            EntityDataComponent* entityData = engine.entityDataComponents->GetComponent(selected_entity);
-        
-            const int bufferSize = 256;
-            char title[bufferSize];
+        EntityDataComponent* entityData = engine.entityDataComponents->GetComponent(selected_entity);
+
+        if (entityData) {
+            if (ImGui::CollapsingHeader("Data", ImGuiTreeNodeFlags_DefaultOpen)) {
+                
             
-            strncpy(title, entityData->title.c_str(), bufferSize);
-            title[bufferSize - 1] = '\0';
-        
-            ImGui::BeginChild("EntityDataBox", ImVec2(0, 150), true);
-            ImGui::Text("Title");
-            if (ImGui::InputText("##Title", title, bufferSize)) {
-                entityData->title = std::string(title);
+                const int bufferSize = 256;
+                char title[bufferSize];
+                
+                strncpy(title, entityData->title.c_str(), bufferSize);
+                title[bufferSize - 1] = '\0';
+            
+                ImGui::BeginChild("EntityDataBox", ImVec2(0, 150), true);
+                ImGui::Text("Title");
+                if (ImGui::InputText("##Title", title, bufferSize)) {
+                    entityData->title = std::string(title);
+                }
+                
+                ImGui::EndChild();
             }
-            
-            ImGui::EndChild();
+        }
+        // Transform Component
+        TransformComponent* transform = engine.transformComponents->GetComponent(selected_entity);
+
+        if (transform) {
+            if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
+
+                
+
+                float positionArray[3] = { transform->position.x, transform->position.y, transform->position.z };
+                float rotationArray[3] = { transform->rotation.x, transform->rotation.y, transform->rotation.z };
+                float scaleArray[3]    = { transform->scale.x, transform->scale.y, transform->scale.z };
+
+                // Create a box-like appearance using a child window
+                ImGui::BeginChild("TransformBox", ImVec2(0, 150), true);
+
+                // Position
+                ImGui::Text("Position");
+                ImGui::InputFloat3("##Position", positionArray);
+                if (ImGui::IsItemDeactivatedAfterEdit()) {
+                    // Update the transform.position if the input values change
+                    transform->position = glm::vec3(positionArray[0], positionArray[1], positionArray[2]);
+                }
+
+                // Rotation
+                ImGui::Text("Rotation");
+                ImGui::InputFloat3("##Rotation", rotationArray);
+                if (ImGui::IsItemDeactivatedAfterEdit()) {
+                    // Update the transform.rotation if the input values change
+                    transform->rotation = glm::vec3(rotationArray[0], rotationArray[1], rotationArray[2]);
+                }
+
+                // Scale
+                ImGui::Text("Scale");
+                ImGui::InputFloat3("##Scale", scaleArray);
+                if (ImGui::IsItemDeactivatedAfterEdit()) {
+                    // Update the transform.scale if the input values change
+                    transform->scale = glm::vec3(scaleArray[0], scaleArray[1], scaleArray[2]);
+                }
+
+                ImGui::EndChild();
+            }
         }
 
-        // Transform Component
-        if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
+        //PointLightComponent
+        PointLightComponent* pointLight = engine.pointLightComponents->GetComponent(selected_entity);
 
-            TransformComponent* transform = engine.transformComponents->GetComponent(selected_entity);
+        if (pointLight) {
+            if (ImGui::CollapsingHeader("Point Light", ImGuiTreeNodeFlags_DefaultOpen)) {
+                float positionArray[3] = { pointLight->position.x, pointLight->position.y, pointLight->position.z };
+                float colorArray[3] = { pointLight->color[0], pointLight->color[1], pointLight->color[1] };
 
-            float positionArray[3] = { transform->position.x, transform->position.y, transform->position.z };
-            float rotationArray[3] = { transform->rotation.x, transform->rotation.y, transform->rotation.z };
-            float scaleArray[3]    = { transform->scale.x, transform->scale.y, transform->scale.z };
+                ImGui::BeginChild("PointLightBox", ImVec2(0, 150), true);
 
-            // Create a box-like appearance using a child window
-            ImGui::BeginChild("TransformBox", ImVec2(0, 150), true);
+                ImGui::Text("Position");
+                ImGui::InputFloat3("##Position", positionArray);
+                if (ImGui::IsItemDeactivatedAfterEdit()) {
+                    // Update the transform.position if the input values change
+                    pointLight->position = glm::vec3(positionArray[0], positionArray[1], positionArray[2]);
+                }
 
-            // Position
-            ImGui::Text("Position");
-            ImGui::InputFloat3("##Position", positionArray);
-            if (ImGui::IsItemDeactivatedAfterEdit()) {
-                // Update the transform.position if the input values change
-                transform->position = glm::vec3(positionArray[0], positionArray[1], positionArray[2]);
+                ImGui::Text("Color");
+                ImGui::InputFloat3("##Color", colorArray);
+                if (ImGui::IsItemDeactivatedAfterEdit()) {
+                    // Update the transform.position if the input values change
+                    pointLight->color = glm::vec3(colorArray[0], colorArray[1], colorArray[2]);
+                }
+
+                ImGui::EndChild();
             }
-
-            // Rotation
-            ImGui::Text("Rotation");
-            ImGui::InputFloat3("##Rotation", rotationArray);
-            if (ImGui::IsItemDeactivatedAfterEdit()) {
-                // Update the transform.rotation if the input values change
-                transform->rotation = glm::vec3(rotationArray[0], rotationArray[1], rotationArray[2]);
-            }
-
-            // Scale
-            ImGui::Text("Scale");
-            ImGui::InputFloat3("##Scale", scaleArray);
-            if (ImGui::IsItemDeactivatedAfterEdit()) {
-                // Update the transform.scale if the input values change
-                transform->scale = glm::vec3(scaleArray[0], scaleArray[1], scaleArray[2]);
-            }
-
-            ImGui::EndChild();
         }
     }
     ImGui::End();
