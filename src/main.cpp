@@ -220,6 +220,25 @@ void ComponentEditor() {
     ImGui::Begin("Component Editor");
 
     if (selected_entity != 0) {
+        // Entity Data Component
+        if (ImGui::CollapsingHeader("Data", ImGuiTreeNodeFlags_DefaultOpen)) {
+            EntityDataComponent* entityData = engine.entityDataComponents->GetComponent(selected_entity);
+        
+            const int bufferSize = 256;
+            char title[bufferSize];
+            
+            strncpy(title, entityData->title.c_str(), bufferSize);
+            title[bufferSize - 1] = '\0';
+        
+            ImGui::BeginChild("EntityDataBox", ImVec2(0, 150), true);
+            ImGui::Text("Title");
+            if (ImGui::InputText("##Title", title, bufferSize)) {
+                entityData->title = std::string(title);
+            }
+            
+            ImGui::EndChild();
+        }
+
         // Transform Component
         if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
 
