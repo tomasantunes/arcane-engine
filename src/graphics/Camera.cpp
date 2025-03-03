@@ -6,7 +6,7 @@
 
 class Camera {
 public:
-    Camera(glm::vec3 position = glm::vec3(0.0f, 10.0f, 10.0f), 
+    Camera(glm::vec3 position = glm::vec3(0.0f, 5.0f, 10.0f), 
            glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), 
            float yaw = -90.0f, float pitch = 0.0f)
         : Position(position), WorldUp(up), Yaw(yaw), Pitch(pitch), 
@@ -54,6 +54,12 @@ public:
             Zoom = 1.0f;
         if (Zoom > 45.0f)
             Zoom = 45.0f;
+    }
+
+    void SetTarget(glm::vec3 target) {
+        Front = glm::normalize(target - Position); // Direction from camera to target
+        Right = glm::normalize(glm::cross(Front, WorldUp));
+        Up = glm::normalize(glm::cross(Right, Front));
     }
 
     // Camera movement directions

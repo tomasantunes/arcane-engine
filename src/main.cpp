@@ -94,6 +94,7 @@ int main() {
     Camera camera;
     Scene scene;
     engine.camera = &camera;
+    engine.camera->SetTarget(glm::vec3(0.0f, 0.0f, 0.0f));
     engine.scene = &scene;
 
     Shader defaultShader("shaders/default-vshader.glsl", "shaders/default-fshader.glsl");
