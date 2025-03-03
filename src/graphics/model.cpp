@@ -1,7 +1,11 @@
 #include "model.h"
+#include <filesystem>
 
 Model::Model(const std::string& path) {
-    LoadModel(path);
+    std::string filename = std::filesystem::path(path).filename();
+    std::string dst = "game/models/" + filename;
+    std::filesystem::copy(path, dst);
+    LoadModel(dst);
 }
 
 void Model::LoadModel(const std::string& path) {

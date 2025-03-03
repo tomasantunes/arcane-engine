@@ -53,6 +53,8 @@ add_executable(ArcaneEngine ${SOURCES})
 # Link libraries
 target_link_libraries(ArcaneEngine PRIVATE glfw OpenGL::GL GLU GLEW assimp::assimp)
 
+file(COPY game DESTINATION .)
+
 # Create a 'shaders' directory in the build folder
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/shaders)
 
