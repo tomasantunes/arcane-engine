@@ -28,6 +28,7 @@ set(SOURCES
     src/general/System.cpp
     src/general/scene.h
     src/general/scene.cpp
+    src/general/GameData.cpp
     src/graphics/model.h
     src/graphics/model.cpp
     src/graphics/shader.h

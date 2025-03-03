@@ -280,6 +280,7 @@ void ComponentEditor() {
                 if (ImGui::IsItemDeactivatedAfterEdit()) {
                     // Update the transform.position if the input values change
                     transform->position = glm::vec3(positionArray[0], positionArray[1], positionArray[2]);
+                    engine.transformSystem->SetTransform();
                 }
 
                 // Rotation
@@ -288,6 +289,7 @@ void ComponentEditor() {
                 if (ImGui::IsItemDeactivatedAfterEdit()) {
                     // Update the transform.rotation if the input values change
                     transform->rotation = glm::vec3(rotationArray[0], rotationArray[1], rotationArray[2]);
+                    engine.transformSystem->SetTransform();
                 }
 
                 // Scale
@@ -296,6 +298,7 @@ void ComponentEditor() {
                 if (ImGui::IsItemDeactivatedAfterEdit()) {
                     // Update the transform.scale if the input values change
                     transform->scale = glm::vec3(scaleArray[0], scaleArray[1], scaleArray[2]);
+                    engine.transformSystem->SetTransform();
                 }
 
                 ImGui::EndChild();
