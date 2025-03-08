@@ -46,10 +46,14 @@ set(SOURCES
     lib/imgui/backends/imgui_impl_opengl3.cpp
     lib/ImGuiFileDialog/ImGuiFileDialog.h
     lib/ImGuiFileDialog/ImGuiFileDialog.cpp
+    scripts/scripts.h
 )
 
+set(SCRIPT_SRC "")
+file(GLOB SCRIPT_SRC "scripts/*.cpp")
+
 # Executable
-add_executable(Game ${SOURCES})
+add_executable(Game ${SOURCES} ${SCRIPT_SRC})
 
 # Link libraries
 target_link_libraries(Game PRIVATE glfw OpenGL::GL GLU GLEW assimp::assimp)

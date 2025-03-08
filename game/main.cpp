@@ -25,6 +25,7 @@
 #include "src/graphics/RenderSystem.cpp"
 #include "src/graphics/TransformSystem.cpp"
 #include "src/graphics/Camera.cpp"
+#include "scripts/scripts.h"
 
 int size_w = 1280;
 int size_h = 768;
