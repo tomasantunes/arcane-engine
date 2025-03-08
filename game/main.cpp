@@ -141,6 +141,8 @@ int main() {
 
     engine.scene->entities.insert(light1);
     engine.renderSystem->entities.insert(light1);
+
+    {{loadscripts}}
     
     renderLoop(engine);
 
@@ -370,6 +372,8 @@ void renderLoop(Engine engine) {
         engine.renderSystem->DrawLight(deltaTime);
         engine.renderSystem->shader = engine.defaultShader;
         engine.renderSystem->Update(deltaTime);
+
+        {{updatescripts}}
         
         ImGui::Render();
 
