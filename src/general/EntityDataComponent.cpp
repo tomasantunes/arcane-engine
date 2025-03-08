@@ -1,5 +1,5 @@
-#ifndef ENTITYDATACOMPONENTS_CPP
-#define ENTITYDATACOMPONENTS_CPP
+#ifndef ENTITYDATACOMPONENT_CPP
+#define ENTITYDATACOMPONENT_CPP
 
 #include <string>
 #include "../structs.cpp"

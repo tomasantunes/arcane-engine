@@ -16,7 +16,8 @@
 #include "src/general/Engine.cpp"
 #include "src/general/EntityManager.cpp"
 #include "src/general/ComponentManager.cpp"
-#include "src/general/EntityDataComponents.cpp"
+#include "src/general/EntityDataComponent.cpp"
+#include "src/general/ScriptComponent.cpp"
 #include "src/general/scene.h"
 #include "src/graphics/model.h"
 #include "src/graphics/shader.h"
@@ -107,11 +108,13 @@ int main() {
     ComponentArray<TransformComponent> transformComponents;
     ComponentArray<ModelComponent> modelComponents;
     ComponentArray<EntityDataComponent> entityDataComponents;
+    ComponentArray<ScriptComponent> scriptComponents;
     ComponentArray<PointLightComponent> pointLightComponents;
     engine.entityManager = &entityManager;
     engine.transformComponents = &transformComponents;
     engine.modelComponents = &modelComponents;
     engine.entityDataComponents = &entityDataComponents;
+    engine.scriptComponents = &scriptComponents;
     engine.pointLightComponents = &pointLightComponents;
 
     RenderSystem renderSystem;

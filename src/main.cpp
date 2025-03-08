@@ -16,7 +16,8 @@
 #include "general/Engine.cpp"
 #include "general/EntityManager.cpp"
 #include "general/ComponentManager.cpp"
-#include "general/EntityDataComponents.cpp"
+#include "general/EntityDataComponent.cpp"
+#include "general/ScriptComponent.cpp"
 #include "general/scene.h"
 #include "graphics/model.h"
 #include "graphics/shader.h"
@@ -331,6 +332,36 @@ void ComponentEditor() {
 
                 ImGui::EndChild();
             }
+        }
+
+        ScriptComponent* script = engine.scriptComponents->GetComponent(selected_entity);
+
+        if (script) {
+            if (ImGui::CollapsingHeader("Script", ImGuiTreeNodeFlags_DefaultOpen)) {
+                const int bufferSize = 256;
+                char filename[bufferSize];
+                char classname[bufferSize];
+                
+                strncpy(filename, script->filename.c_str(), bufferSize);
+                filename[bufferSize - 1] = '\0';
+
+                strncpy(classname, script->classname.c_str(), bufferSize);
+                classname[bufferSize - 1] = '\0';
+            
+                ImGui::BeginChild("ScriptBox", ImVec2(0, 150), true);
+                ImGui::Text("File Name");
+                if (ImGui::InputText("##FileName", filename, bufferSize)) {
+                    script->filename = std::string(filename);
+                }
+
+                ImGui::Text("Class Name");
+                if (ImGui::InputText("##ClassName", classname, bufferSize)) {
+                    script->classname = std::string(classname);
+                }
+                
+                ImGui::EndChild();
+            }
+
         }
     }
     ImGui::End();
