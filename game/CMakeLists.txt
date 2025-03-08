@@ -20,7 +20,7 @@ include_directories(${CMAKE_SOURCE_DIR}/lib/ImGuiFileDialog)
 
 # Source files
 set(SOURCES
-    src/main.cpp
+    main.cpp
     src/constants.cpp
     src/structs.cpp
     src/general/EntityManager.cpp

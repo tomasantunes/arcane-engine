@@ -11,19 +11,19 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-#include "structs.cpp"
-#include "constants.cpp"
-#include "general/Engine.cpp"
-#include "general/EntityManager.cpp"
-#include "general/ComponentManager.cpp"
-#include "general/EntityDataComponents.cpp"
-#include "general/scene.h"
-#include "graphics/model.h"
-#include "graphics/shader.h"
-#include "graphics/GraphicsComponents.cpp"
-#include "graphics/RenderSystem.cpp"
-#include "graphics/TransformSystem.cpp"
-#include "graphics/Camera.cpp"
+#include "src/structs.cpp"
+#include "src/constants.cpp"
+#include "src/general/Engine.cpp"
+#include "src/general/EntityManager.cpp"
+#include "src/general/ComponentManager.cpp"
+#include "src/general/EntityDataComponents.cpp"
+#include "src/general/scene.h"
+#include "src/graphics/model.h"
+#include "src/graphics/shader.h"
+#include "src/graphics/GraphicsComponents.cpp"
+#include "src/graphics/RenderSystem.cpp"
+#include "src/graphics/TransformSystem.cpp"
+#include "src/graphics/Camera.cpp"
 
 int size_w = 1280;
 int size_h = 768;
