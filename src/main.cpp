@@ -35,6 +35,7 @@ bool cameraActive = false; // Tracks whether the camera is active
 bool cursorLocked = false; // Tracks whether the cursor is locked
 double lastMouseX = 0.0, lastMouseY = 0.0; // Stores the last mouse position
 static int selected_entity_idx = 0;
+std::string add_script_name = "";
 Entity selected_entity = 0;
 Engine engine;
 
@@ -91,7 +92,7 @@ int main() {
 
     setupImGui(engine.window);
 
-    setupFramebuffer(512, 512);
+    setupFramebuffer(500, 380);
 
     Camera camera;
     Scene scene;
@@ -112,11 +113,13 @@ int main() {
     ComponentArray<ModelComponent> modelComponents;
     ComponentArray<EntityDataComponent> entityDataComponents;
     ComponentArray<PointLightComponent> pointLightComponents;
+    ComponentArray<ScriptComponent> scriptComponents;
     engine.entityManager = &entityManager;
     engine.transformComponents = &transformComponents;
     engine.modelComponents = &modelComponents;
     engine.entityDataComponents = &entityDataComponents;
     engine.pointLightComponents = &pointLightComponents;
+    engine.scriptComponents = &scriptComponents;
 
     RenderSystem renderSystem;
     engine.renderSystem = &renderSystem;
@@ -364,6 +367,31 @@ void ComponentEditor() {
             }
 
         }
+
+        const int bufferSize = 256;
+        char scriptname[bufferSize];
+        strncpy(scriptname, add_script_name.c_str(), bufferSize);
+        scriptname[bufferSize - 1] = '\0';
+
+        if (ImGui::InputText("##ScriptName", scriptname, bufferSize)) {
+            add_script_name = std::string(scriptname);
+        }
+        if (ImGui::Button("Add Script")) {
+            engine.scriptComponents->AddComponent(selected_entity, {
+                selected_entity,
+                add_script_name + ".cpp",
+                add_script_name
+            });
+            GameData gamedata;
+
+            std::string inputFilePath = "game/scripts/ScriptBase.cpp";
+            std::string outputFilePath = "game/scripts/" + add_script_name + ".cpp";
+            std::string searchStr1 = "{{classname}}";
+            std::string replaceStr1 = add_script_name;
+            std::vector<std::string> searchStrs = {searchStr1};
+            std::vector<std::string> replaceStrs = {replaceStr1};
+            gamedata.replaceStringsInFile(inputFilePath, outputFilePath, searchStrs, replaceStrs);
+        }
     }
     ImGui::End();
 }
@@ -377,12 +405,13 @@ void SaveGame() {
 
     std::vector<EntityDataComponent*> components = engine.scene->ListEntityData();
 
-    std::string inputFilePath = "general/mainbase.cpp";
+    std::string inputFilePath = "game/mainbase.cpp";
     std::string outputFilePath = "game/main.cpp";
     std::string searchStr1 = "{{loadscripts}}";
     std::string replaceStr1 = "";
     std::string searchStr2 = "{{updatescripts}}";
     std::string replaceStr2 = "";
+    std::string includeScripts = "";
     int count = 0;
 
     for (EntityDataComponent* e : components) {
@@ -393,6 +422,7 @@ void SaveGame() {
             replaceStr1 += "script" + std::to_string(count) + ".Load();\n";
             replaceStr2 += script->classname + " " + "script" + std::to_string(count) +  ";\n";
             replaceStr2 += "script" + std::to_string(count) + ".Update(deltaTime);\n";
+            includeScripts += "#include \"scripts/" + script->filename + "\"\n";
         }
     }
 
@@ -400,6 +430,10 @@ void SaveGame() {
     std::vector<std::string> replaceStrs = {replaceStr1, replaceStr2};
 
     gamedata.replaceStringsInFile(inputFilePath, outputFilePath, searchStrs, replaceStrs);
+
+    
+    std::string scriptHeader = "game/scripts/scripts.h";
+    gamedata.writeStringToFile(includeScripts, scriptHeader);
 }
 
 void renderLoop(Engine engine) {
@@ -502,7 +536,7 @@ void renderLoop(Engine engine) {
         
         // Bind framebuffer to render scene
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-        glViewport(0, 0, 530, 530);
+        glViewport(0, 0, 500, 380);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         engine.transformSystem->Update(deltaTime);

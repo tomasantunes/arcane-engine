@@ -3,7 +3,7 @@
 
 #include <vector>
 #include "ComponentManager.cpp"
-#include "EntityDataComponents.cpp"
+#include "EntityDataComponent.cpp"
 #include "System.cpp"
 
 class Scene : public System {

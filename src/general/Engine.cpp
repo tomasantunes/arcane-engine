@@ -9,6 +9,7 @@
 #include "../graphics/RenderSystem.cpp"
 #include "../graphics/TransformSystem.cpp"
 #include "../graphics/Camera.cpp"
+#include "ScriptComponent.cpp"
 #include "scene.h"
 
 class Engine {

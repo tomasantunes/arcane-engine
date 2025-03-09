@@ -17,7 +17,7 @@ namespace fs = std::filesystem;
 
 class GameData {
     public:
-        GameData();
+        GameData() {};
         
         void SaveEntity(Entity entity, ComponentArray<TransformComponent>* transformArray) {
             std::string filename = "game/data/" + std::to_string(entity);
@@ -83,6 +83,30 @@ class GameData {
             outputFile.close();
         
             std::cout << "File successfully modified and saved to: " << outputFilePath << std::endl;
+        }
+
+        void writeStringToFile(const std::string& content, const std::string& filePath) {
+            // Open the file in output mode, which will overwrite the file if it exists
+            std::ofstream outputFile(filePath);
+        
+            // Check if the file was successfully opened
+            if (!outputFile.is_open()) {
+                std::cerr << "Error: Could not open file " << filePath << " for writing." << std::endl;
+                return;
+            }
+        
+            // Write the content to the file
+            outputFile << content;
+        
+            // Close the file
+            outputFile.close();
+        
+            // Check if the write operation was successful
+            if (outputFile.fail()) {
+                std::cerr << "Error: Failed to write content to file " << filePath << "." << std::endl;
+            } else {
+                std::cout << "Content successfully written to " << filePath << "." << std::endl;
+            }
         }
 
 
