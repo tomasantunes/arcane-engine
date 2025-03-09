@@ -19,6 +19,7 @@
 #include "src/general/EntityDataComponent.cpp"
 #include "src/general/ScriptComponent.cpp"
 #include "src/general/GameData.cpp"
+#include "src/general/Script.cpp"
 #include "src/general/scene.h"
 #include "src/graphics/model.h"
 #include "src/graphics/shader.h"
@@ -36,8 +37,11 @@ bool cameraActive = false; // Tracks whether the camera is active
 bool cursorLocked = false; // Tracks whether the cursor is locked
 double lastMouseX = 0.0, lastMouseY = 0.0; // Stores the last mouse position
 static int selected_entity_idx = 0;
+std::vector<Script> scripts;
 Entity selected_entity = 0;
 Engine engine;
+
+{{initializescripts}}
 
 void setupGLFW();
 GLFWwindow* createWindow(int width, int height, const char* title);
@@ -195,6 +199,8 @@ void renderLoop(Engine engine) {
         glViewport(0, 0, size_w, size_h);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        {{updatescripts}}
+
         engine.transformSystem->Update(deltaTime);
         engine.renderSystem->camera = engine.camera;
         engine.renderSystem->size = glm::vec2(size_w, size_h);
@@ -204,8 +210,6 @@ void renderLoop(Engine engine) {
         engine.renderSystem->DrawLight(deltaTime);
         engine.renderSystem->shader = engine.defaultShader;
         engine.renderSystem->Update(deltaTime);
-
-        {{updatescripts}}
         
         ImGui::Render();
 

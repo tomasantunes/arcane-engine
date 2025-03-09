@@ -2,6 +2,7 @@
 #include "../src/general/API.cpp"
 #include "../src/general/ComponentManager.cpp"
 #include "../src/graphics/GraphicsComponents.cpp"
+#include "../src/general/Engine.cpp"
 
 class {{classname}} : public Script {
     public:
@@ -12,4 +13,4 @@ class {{classname}} : public Script {
         void Update(float deltaTime) override {
             
         }
-}
+};

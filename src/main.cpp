@@ -408,10 +408,12 @@ void SaveGame() {
 
     std::string inputFilePath = "game/base/mainbase.cpp";
     std::string outputFilePath = "game/main.cpp";
-    std::string searchStr1 = "{{loadscripts}}";
+    std::string searchStr1 = "{{initializescripts}}";
     std::string replaceStr1 = "";
-    std::string searchStr2 = "{{updatescripts}}";
+    std::string searchStr2 = "{{loadscripts}}";
     std::string replaceStr2 = "";
+    std::string searchStr3 = "{{updatescripts}}";
+    std::string replaceStr3 = "";
     std::string includeScripts = "";
     int count = 0;
 
@@ -420,15 +422,16 @@ void SaveGame() {
 
         if (script) {
             replaceStr1 += script->classname + " " + "script" + std::to_string(count) +  ";\n";
-            replaceStr1 += "script" + std::to_string(count) + ".Load();\n";
-            replaceStr2 += script->classname + " " + "script" + std::to_string(count) +  ";\n";
-            replaceStr2 += "script" + std::to_string(count) + ".Update(deltaTime);\n";
-            includeScripts += "#include \"scripts/" + script->filename + "\"\n";
+            replaceStr2 += "script" + std::to_string(count) + ".entity = " + std::to_string(e->entity) + ";\n";
+            replaceStr2 += "script" + std::to_string(count) + ".engine = &engine;\n";
+            replaceStr2 += "script" + std::to_string(count) + ".Load();\n";
+            replaceStr3 += "script" + std::to_string(count) + ".Update(deltaTime);\n";
+            includeScripts += "#include \"" + script->filename + "\"\n";
         }
     }
 
-    std::vector<std::string> searchStrs = {searchStr1, searchStr2};
-    std::vector<std::string> replaceStrs = {replaceStr1, replaceStr2};
+    std::vector<std::string> searchStrs = {searchStr1, searchStr2, searchStr3};
+    std::vector<std::string> replaceStrs = {replaceStr1, replaceStr2, replaceStr3};
 
     gamedata.replaceStringsInFile(inputFilePath, outputFilePath, searchStrs, replaceStrs);
 
