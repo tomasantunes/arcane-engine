@@ -19,19 +19,113 @@ class GameData {
     public:
         GameData() {};
         
-        void SaveEntity(Entity entity, ComponentArray<TransformComponent>* transformArray) {
+        void SaveEntity(Entity entity, ComponentArray<TransformComponent>* transformArray, ComponentArray<ModelComponent>* modelArray) {
             std::string filename = "game/data/" + std::to_string(entity);
 
             TransformComponent* t = transformArray->GetComponent(entity);
+            ModelComponent* m = modelArray->GetComponent(entity);
 
             std::ofstream outFile(filename);
 
+            outFile << "Transform" << std::endl;
             outFile << mat4ToString(t->transform) << std::endl;
             outFile << vec3ToString(t->position) << std::endl;
             outFile << vec3ToString(t->rotation) << std::endl;
             outFile << vec3ToString(t->scale) << std::endl;
+            outFile << "Model" << std::endl;
+            outFile << m->filename << std::endl;
 
             outFile.close();
+        }
+
+        std::vector<Entity> LoadEntities() {
+            std::vector<Entity> entities;
+            std::string folderPath = "data";
+
+            // Check if the provided path is a directory
+            if (!fs::is_directory(folderPath)) {
+                std::cerr << "Provided path is not a directory: " << folderPath << std::endl;
+                return entities;
+            }
+
+            // Iterate over the directory and collect filenames
+            for (const auto& entry : fs::directory_iterator(folderPath)) {
+                if (entry.is_regular_file()) {
+                    entities.push_back(std::stoi(entry.path().filename().string()));
+                }
+            }
+
+            return entities;
+        }
+
+        TransformComponent LoadEntityTransform(Entity entity) {
+            std::string filepath = "data/" + std::to_string(entity);
+
+            std::ifstream file(filepath);
+            if (!file.is_open()) {
+                std::cerr << "Failed to open the file!" << std::endl;
+            }
+
+            // Vector to store the lines
+            std::vector<std::string> lines;
+            std::string line;
+
+            // Read lines from the file
+            int line_number = 0;
+            while (std::getline(file, line)) {
+                line_number++;
+                if (line_number >= 2 && line_number <= 5) {
+                    lines.push_back(line);
+                }
+                // Stop reading after the 5th line
+                if (line_number > 5) {
+                    break;
+                }
+            }
+
+            // Close the file
+            file.close();
+
+            TransformComponent transform = {
+                stringToMat4(lines[0]),
+                stringToVec3(lines[1]),
+                stringToVec3(lines[2]),
+                stringToVec3(lines[3])
+            };
+
+            return transform;
+        }
+
+        std::string LoadEntityModel(Entity entity) {
+            std::string filepath = "data/" + std::to_string(entity);
+
+            std::ifstream file(filepath);
+            if (!file.is_open()) {
+                std::cerr << "Failed to open the file!" << std::endl;
+            }
+
+            // Vector to store the lines
+            std::vector<std::string> lines;
+            std::string line;
+
+            // Read lines from the file
+            int line_number = 0;
+            while (std::getline(file, line)) {
+                line_number++;
+                if (line_number == 7) {
+                    lines.push_back(line);
+                }
+                // Stop reading after the 5th line
+                if (line_number > 7) {
+                    break;
+                }
+            }
+
+            // Close the file
+            file.close();
+
+            std::string filename = lines[0];
+            return filename;
         }
 
 

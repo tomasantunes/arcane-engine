@@ -2,10 +2,7 @@
 #include <filesystem>
 
 Model::Model(const std::string& path) {
-    std::string filename = std::filesystem::path(path).filename();
-    std::string dst = "game/models/" + filename;
-    std::filesystem::copy(path, dst);
-    LoadModel(dst);
+    LoadModel(path);
 }
 
 void Model::LoadModel(const std::string& path) {

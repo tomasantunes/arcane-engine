@@ -13,6 +13,7 @@ struct TransformComponent {
 
 struct ModelComponent {
     Model* model;
+    std::string filename;
 };
 
 struct PointLightComponent {

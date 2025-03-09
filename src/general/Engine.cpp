@@ -31,6 +31,7 @@ class Engine {
         TransformSystem* transformSystem;
         Camera* camera;
         Scene* scene;
+        std::string mode;
     };
 
 #endif

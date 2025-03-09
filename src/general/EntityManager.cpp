@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include <algorithm>
 #include "../constants.cpp"
 #include "../structs.cpp"
 
@@ -26,6 +27,14 @@ class EntityManager {
             Entity id = availableEntities.back();
             availableEntities.pop_back();
             return id;
+        }
+
+        void LoadEntity(Entity entity) {
+            // Use std::remove to move all instances of the value to the end
+            auto new_end = std::remove(availableEntities.begin(), availableEntities.end(), entity);
+
+            // Erase the "removed" elements from the vector
+            availableEntities.erase(new_end, availableEntities.end());
         }
 
         void DestroyEntity(Entity entity) {

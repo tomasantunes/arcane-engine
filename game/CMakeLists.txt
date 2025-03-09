@@ -58,6 +58,9 @@ add_executable(Game ${SOURCES} ${SCRIPT_SRC})
 # Link libraries
 target_link_libraries(Game PRIVATE glfw OpenGL::GL GLU GLEW assimp::assimp)
 
+file(COPY data DESTINATION .)
+file(COPY models DESTINATION .)
+
 # Create a 'shaders' directory in the build folder
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/shaders)
 

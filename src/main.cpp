@@ -94,6 +94,7 @@ int main() {
 
     setupFramebuffer(500, 380);
 
+    engine.mode = "editor";
     Camera camera;
     Scene scene;
     engine.camera = &camera;
@@ -384,7 +385,7 @@ void ComponentEditor() {
             });
             GameData gamedata;
 
-            std::string inputFilePath = "game/scripts/ScriptBase.cpp";
+            std::string inputFilePath = "game/base/ScriptBase.cpp";
             std::string outputFilePath = "game/scripts/" + add_script_name + ".cpp";
             std::string searchStr1 = "{{classname}}";
             std::string replaceStr1 = add_script_name;
@@ -400,12 +401,12 @@ void SaveGame() {
     GameData gamedata;
 
     for (Entity entity : engine.transformSystem->entities) {
-        gamedata.SaveEntity(entity, engine.transformComponents);
+        gamedata.SaveEntity(entity, engine.transformComponents, engine.modelComponents);
     }
 
     std::vector<EntityDataComponent*> components = engine.scene->ListEntityData();
 
-    std::string inputFilePath = "game/mainbase.cpp";
+    std::string inputFilePath = "game/base/mainbase.cpp";
     std::string outputFilePath = "game/main.cpp";
     std::string searchStr1 = "{{loadscripts}}";
     std::string replaceStr1 = "";
@@ -471,6 +472,7 @@ void renderLoop(Engine engine) {
             if (ImGuiFileDialog::Instance()->IsOk()) { // action if OK
                 std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
                 std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+                std::string filename = std::filesystem::path(filePathName).filename();
 
                 Entity openedFile = engine.entityManager->CreateEntity();
 
@@ -480,8 +482,10 @@ void renderLoop(Engine engine) {
                     glm::vec3(0.0f, 0.0f, 0.0f),
                     glm::vec3(1.0f, 1.0f, 1.0f),
                 });
-                Model myModel1(filePathName);
-                engine.modelComponents->AddComponent(openedFile, {&myModel1});
+                std::string dst = "game/models/" + filename;
+                std::filesystem::copy(filePathName, dst);
+                Model myModel1(dst);
+                engine.modelComponents->AddComponent(openedFile, {&myModel1, filename});
                 engine.entityDataComponents->AddComponent(openedFile, {openedFile, "Entity" + std::to_string(openedFile)});
 
                 engine.scene->entities.insert(openedFile);

@@ -18,6 +18,7 @@
 #include "src/general/ComponentManager.cpp"
 #include "src/general/EntityDataComponent.cpp"
 #include "src/general/ScriptComponent.cpp"
+#include "src/general/GameData.cpp"
 #include "src/general/scene.h"
 #include "src/graphics/model.h"
 #include "src/graphics/shader.h"
@@ -53,6 +54,7 @@ int main() {
 
     setupImGui(engine.window);
 
+    engine.mode = "game";
     Camera camera;
     Scene scene;
     engine.camera = &camera;
@@ -103,6 +105,25 @@ int main() {
 
     engine.scene->entities.insert(light1);
     engine.renderSystem->entities.insert(light1);
+
+    GameData gamedata;
+
+    std::vector<Entity> loadedEntities = gamedata.LoadEntities();
+
+    for (Entity entity : loadedEntities) {
+        entityManager.LoadEntity(entity);
+        std::string filename = gamedata.LoadEntityModel(entity);
+        TransformComponent transform = gamedata.LoadEntityTransform(entity);
+
+        engine.transformComponents->AddComponent(entity, transform);
+        Model myModel1("models/" + filename);
+        engine.modelComponents->AddComponent(entity, {&myModel1, filename});
+        engine.entityDataComponents->AddComponent(entity, {entity, "Entity" + std::to_string(entity)});
+        engine.scene->entities.insert(entity);
+        engine.renderSystem->entities.insert(entity);
+        engine.transformSystem->entities.insert(entity);
+    }
+
 
     {{loadscripts}}
     
