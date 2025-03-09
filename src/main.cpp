@@ -18,6 +18,7 @@
 #include "general/ComponentManager.cpp"
 #include "general/EntityDataComponent.cpp"
 #include "general/ScriptComponent.cpp"
+#include "general/GameData.cpp"
 #include "general/scene.h"
 #include "graphics/model.h"
 #include "graphics/shader.h"
@@ -367,6 +368,40 @@ void ComponentEditor() {
     ImGui::End();
 }
 
+void SaveGame() {
+    GameData gamedata;
+
+    for (Entity entity : engine.transformSystem->entities) {
+        gamedata.SaveEntity(entity, engine.transformComponents);
+    }
+
+    std::vector<EntityDataComponent*> components = engine.scene->ListEntityData();
+
+    std::string inputFilePath = "general/mainbase.cpp";
+    std::string outputFilePath = "game/main.cpp";
+    std::string searchStr1 = "{{loadscripts}}";
+    std::string replaceStr1 = "";
+    std::string searchStr2 = "{{updatescripts}}";
+    std::string replaceStr2 = "";
+    int count = 0;
+
+    for (EntityDataComponent* e : components) {
+        ScriptComponent* script = engine.scriptComponents->GetComponent(e->entity);
+
+        if (script) {
+            replaceStr1 += script->classname + " " + "script" + std::to_string(count) +  ";\n";
+            replaceStr1 += "script" + std::to_string(count) + ".Load();\n";
+            replaceStr2 += script->classname + " " + "script" + std::to_string(count) +  ";\n";
+            replaceStr2 += "script" + std::to_string(count) + ".Update(deltaTime);\n";
+        }
+    }
+
+    std::vector<std::string> searchStrs = {searchStr1, searchStr2};
+    std::vector<std::string> replaceStrs = {replaceStr1, replaceStr2};
+
+    gamedata.replaceStringsInFile(inputFilePath, outputFilePath, searchStrs, replaceStrs);
+}
+
 void renderLoop(Engine engine) {
     while (!glfwWindowShouldClose(engine.window)) {
         glfwPollEvents();
@@ -385,6 +420,9 @@ void renderLoop(Engine engine) {
                 if (ImGui::MenuItem("Import")) {
                     IGFD::FileDialogConfig config;
                     ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".blend", config);
+                }
+                if (ImGui::MenuItem("Save")) {
+                    SaveGame();
                 }
                 ImGui::EndMenu();
             }
