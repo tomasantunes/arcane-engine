@@ -7,6 +7,9 @@ set(CMAKE_CXX_STANDARD 17)
 find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(assimp REQUIRED)
+find_package(Lua 5.3 REQUIRED)
+
+
 
 # Include directories
 include_directories(
@@ -16,6 +19,7 @@ include_directories(
 include_directories(${CMAKE_SOURCE_DIR}/lib/imgui)
 include_directories(${CMAKE_SOURCE_DIR}/lib/imgui/backends)
 include_directories(${CMAKE_SOURCE_DIR}/lib/ImGuiFileDialog)
+include_directories(${LUA_INCLUDE_DIR})
 
 
 # Source files
@@ -52,7 +56,7 @@ set(SOURCES
 add_executable(ArcaneEngine ${SOURCES})
 
 # Link libraries
-target_link_libraries(ArcaneEngine PRIVATE glfw OpenGL::GL GLU GLEW assimp::assimp)
+target_link_libraries(ArcaneEngine PRIVATE glfw OpenGL::GL GLU GLEW assimp::assimp ${LUA_LIBRARIES})
 
 file(COPY game DESTINATION .)
 file(COPY src DESTINATION ./game)
