@@ -41,8 +41,6 @@ std::vector<Script> scripts;
 Entity selected_entity = 0;
 Engine engine;
 
-{{initializescripts}}
-
 void setupGLFW();
 GLFWwindow* createWindow(int width, int height, const char* title);
 void setupImGui(GLFWwindow* window);
@@ -127,9 +125,6 @@ int main() {
         engine.renderSystem->entities.insert(entity);
         engine.transformSystem->entities.insert(entity);
     }
-
-
-    {{loadscripts}}
     
     renderLoop(engine);
 
@@ -198,8 +193,6 @@ void renderLoop(Engine engine) {
         // Bind framebuffer to render scene
         glViewport(0, 0, size_w, size_h);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        {{updatescripts}}
 
         engine.transformSystem->Update(deltaTime);
         engine.renderSystem->camera = engine.camera;

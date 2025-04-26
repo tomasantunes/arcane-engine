@@ -20,6 +20,7 @@ include_directories(${CMAKE_SOURCE_DIR}/lib/imgui)
 include_directories(${CMAKE_SOURCE_DIR}/lib/imgui/backends)
 include_directories(${CMAKE_SOURCE_DIR}/lib/ImGuiFileDialog)
 include_directories(${LUA_INCLUDE_DIR})
+include_directories(${CMAKE_SOURCE_DIR}/lib)
 
 
 # Source files
@@ -50,6 +51,9 @@ set(SOURCES
     lib/imgui/backends/imgui_impl_opengl3.cpp
     lib/ImGuiFileDialog/ImGuiFileDialog.h
     lib/ImGuiFileDialog/ImGuiFileDialog.cpp
+    lib/sol/config.hpp
+    lib/sol/forward.hpp
+    lib/sol/sol.hpp
 )
 
 # Executable

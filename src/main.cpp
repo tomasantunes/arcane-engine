@@ -11,7 +11,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-#include <lua5.3/lua.hpp>
+#include <sol/sol.hpp>
 #include "structs.cpp"
 #include "constants.cpp"
 #include "general/Engine.cpp"
@@ -95,15 +95,9 @@ int main() {
 
     setupFramebuffer(500, 380);
 
-    lua_State* L = luaL_newstate();
-    luaL_openlibs(L);
-
-    if (luaL_dostring(L, "print('Hello from Lua!')")) {
-        std::cerr << "Lua error: " << lua_tostring(L, -1) << std::endl;
-        lua_pop(L, 1);
-    }
-    
-    lua_close(L);
+    sol::state lua;
+    lua.open_libraries(sol::lib::base);
+    lua.script("print('Hello from fixed setup!')");
 
     engine.mode = "editor";
     Camera camera;

@@ -6,7 +6,9 @@
                 "${workspaceFolder}/lib/imgui",
                 "${workspaceFolder}/lib/imgui/backends",
                 "${workspaceFolder}/lib/ImGuiFileDialog",
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/lib",
+                "${workspaceFolder}/**",
+                "/usr/include/lua5.3"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/g++",
