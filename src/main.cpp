@@ -385,18 +385,13 @@ void ComponentEditor() {
         if (ImGui::Button("Add Script")) {
             engine.scriptComponents->AddComponent(selected_entity, {
                 selected_entity,
-                add_script_name + ".cpp",
-                add_script_name
+                add_script_name + ".lua"
             });
             GameData gamedata;
 
-            std::string inputFilePath = "game/base/ScriptBase.cpp";
-            std::string outputFilePath = "game/scripts/" + add_script_name + ".cpp";
-            std::string searchStr1 = "{{classname}}";
-            std::string replaceStr1 = add_script_name;
-            std::vector<std::string> searchStrs = {searchStr1};
-            std::vector<std::string> replaceStrs = {replaceStr1};
-            gamedata.replaceStringsInFile(inputFilePath, outputFilePath, searchStrs, replaceStrs);
+            std::string inputFilePath = "game/base/ScriptBase.lua";
+            std::string outputFilePath = "game/scripts/" + add_script_name + ".lua";
+            // TODO: Copy script to new location.
         }
     }
     ImGui::End();
@@ -410,39 +405,6 @@ void SaveGame() {
     }
 
     std::vector<EntityDataComponent*> components = engine.scene->ListEntityData();
-
-    std::string inputFilePath = "game/base/mainbase.cpp";
-    std::string outputFilePath = "game/main.cpp";
-    std::string searchStr1 = "{{initializescripts}}";
-    std::string replaceStr1 = "";
-    std::string searchStr2 = "{{loadscripts}}";
-    std::string replaceStr2 = "";
-    std::string searchStr3 = "{{updatescripts}}";
-    std::string replaceStr3 = "";
-    std::string includeScripts = "";
-    int count = 0;
-
-    for (EntityDataComponent* e : components) {
-        ScriptComponent* script = engine.scriptComponents->GetComponent(e->entity);
-
-        if (script) {
-            replaceStr1 += script->classname + " " + "script" + std::to_string(count) +  ";\n";
-            replaceStr2 += "script" + std::to_string(count) + ".entity = " + std::to_string(e->entity) + ";\n";
-            replaceStr2 += "script" + std::to_string(count) + ".engine = &engine;\n";
-            replaceStr2 += "script" + std::to_string(count) + ".Load();\n";
-            replaceStr3 += "script" + std::to_string(count) + ".Update(deltaTime);\n";
-            includeScripts += "#include \"" + script->filename + "\"\n";
-        }
-    }
-
-    std::vector<std::string> searchStrs = {searchStr1, searchStr2, searchStr3};
-    std::vector<std::string> replaceStrs = {replaceStr1, replaceStr2, replaceStr3};
-
-    gamedata.replaceStringsInFile(inputFilePath, outputFilePath, searchStrs, replaceStrs);
-
-    
-    std::string scriptHeader = "game/scripts/scripts.h";
-    gamedata.writeStringToFile(includeScripts, scriptHeader);
 }
 
 void renderLoop(Engine engine) {

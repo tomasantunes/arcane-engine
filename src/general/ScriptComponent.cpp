@@ -7,7 +7,6 @@
 struct ScriptComponent {
     Entity entity;
     std::string filename;
-    std::string classname;
 };
 
 #endif
