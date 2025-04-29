@@ -28,6 +28,8 @@
 #include "graphics/TransformSystem.cpp"
 #include "graphics/Camera.cpp"
 
+namespace fs = std::filesystem;
+
 int size_w = 1280;
 int size_h = 768;
 float deltaTime = 0.0f;
@@ -138,6 +140,10 @@ int main() {
     TransformSystem transformSystem;
     engine.transformSystem = &transformSystem;
     engine.transformSystem->transformArray = engine.transformComponents;
+
+    ScriptSystem scriptSystem;
+    engine.scriptSystem = &scriptSystem;
+    engine.scriptSystem->scriptArray = engine.scriptComponents;
 
     engine.scene->entityDataArray = engine.entityDataComponents;
 
@@ -354,19 +360,11 @@ void ComponentEditor() {
                 
                 strncpy(filename, script->filename.c_str(), bufferSize);
                 filename[bufferSize - 1] = '\0';
-
-                strncpy(classname, script->classname.c_str(), bufferSize);
-                classname[bufferSize - 1] = '\0';
             
                 ImGui::BeginChild("ScriptBox", ImVec2(0, 150), true);
                 ImGui::Text("File Name");
                 if (ImGui::InputText("##FileName", filename, bufferSize)) {
                     script->filename = std::string(filename);
-                }
-
-                ImGui::Text("Class Name");
-                if (ImGui::InputText("##ClassName", classname, bufferSize)) {
-                    script->classname = std::string(classname);
                 }
                 
                 ImGui::EndChild();
@@ -391,7 +389,7 @@ void ComponentEditor() {
 
             std::string inputFilePath = "game/base/ScriptBase.lua";
             std::string outputFilePath = "game/scripts/" + add_script_name + ".lua";
-            // TODO: Copy script to new location.
+            fs::copy_file(inputFilePath, outputFilePath);
         }
     }
     ImGui::End();

@@ -6,6 +6,7 @@
 #include "../graphics/shader.h"
 #include "EntityManager.cpp"
 #include "ComponentManager.cpp"
+#include "ScriptSystem.h"
 #include "../graphics/RenderSystem.cpp"
 #include "../graphics/TransformSystem.cpp"
 #include "../graphics/Camera.cpp"
@@ -29,6 +30,7 @@ class Engine {
         ComponentArray<PointLightComponent>* pointLightComponents;
         RenderSystem* renderSystem;
         TransformSystem* transformSystem;
+        ScriptSystem* scriptSystem;
         Camera* camera;
         Scene* scene;
         std::string mode;

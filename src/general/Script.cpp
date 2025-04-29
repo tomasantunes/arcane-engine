@@ -2,12 +2,12 @@
 #include "EntityManager.cpp"
 #include <iostream>
 
-Script::Script(uint32_t entity, const std::string& filename, EntityManager* manager)
-    : m_entity(entity), m_filename(filename), m_manager(manager) {
+Script::Script(uint32_t entity, const std::string& filename, Engine* engine)
+    : m_entity(entity), m_filename(filename), m_engine(engine) {
 }
 
 void Script::Load() {
-    auto& lua = static_cast<ScriptSystem*>(m_manager->GetSystem<ScriptSystem>())->GetLuaState();
+    sol::state& lua = m_engine->scriptSystem.GetLuaState();
     
     try {
         // Create environment for this script

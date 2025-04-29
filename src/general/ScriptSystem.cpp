@@ -3,8 +3,7 @@
 #include "Script.h"
 #include <iostream>
 
-ScriptSystem::ScriptSystem(EntityManager* manager) 
-    : m_manager(manager) {
+ScriptSystem::ScriptSystem() {
     // Initialize Lua state with common libraries
     m_lua.open_libraries(
         sol::lib::base,
@@ -25,7 +24,7 @@ ScriptSystem::~ScriptSystem() {
 }
 
 void ScriptSystem::AddScript(uint32_t entity, const std::string& filename) {
-    m_scripts.emplace_back(std::make_unique<Script>(entity, filename, m_manager));
+    m_scripts.emplace_back(std::make_unique<Script>(entity, filename));
     m_scripts.back()->Load();
 }
 

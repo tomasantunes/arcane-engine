@@ -18,6 +18,7 @@
 #include "src/general/ComponentManager.cpp"
 #include "src/general/EntityDataComponent.cpp"
 #include "src/general/ScriptComponent.cpp"
+#include "src/general/ScriptSystem.h"
 #include "src/general/GameData.cpp"
 #include "src/general/Script.cpp"
 #include "src/general/scene.h"
@@ -95,6 +96,10 @@ int main() {
     TransformSystem transformSystem;
     engine.transformSystem = &transformSystem;
     engine.transformSystem->transformArray = engine.transformComponents;
+
+    ScriptSystem scriptSystem;
+    engine.scriptSystem = &scriptSystem;
+    engine.scriptSystem->scriptArray = engine.scriptComponents;
 
     engine.scene->entityDataArray = engine.entityDataComponents;
 

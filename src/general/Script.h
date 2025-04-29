@@ -8,11 +8,13 @@
 
 class Script {
 public:
-    Script(uint32_t entity, const std::string& filename, EntityManager* manager);
+    Script(Entity entity, const std::string& filename, Engine* engine);
     ~Script();
 
     void Load();
     void Update(float deltaTime);
+
+    Engine* m_engine;
     
     // Allow moving but prevent copying
     Script(Script&&) = default;
@@ -23,7 +25,6 @@ public:
 private:
     uint32_t m_entity;
     std::string m_filename;
-    EntityManager* m_manager;
     
     sol::environment m_env;
     sol::function m_updateFunc;

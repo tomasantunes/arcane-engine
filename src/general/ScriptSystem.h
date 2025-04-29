@@ -4,22 +4,25 @@
 #include <vector>
 #include <memory>
 #include <sol/sol.hpp>
+#include "../structs.cpp"
+#include "System.cpp"
+#include "ComponentManager.cpp"
 
-class ScriptSystem {
+class ScriptSystem: public System {
 public:
-    ScriptSystem(EntityManager* manager);
+    ScriptSystem();
     ~ScriptSystem();
 
     void Update(float deltaTime);
-    void AddScript(uint32_t entity, const std::string& filename);
+    void AddScript(Entity entity, const std::string& filename);
     void ReloadAllScripts();
 
     // Access to Lua state for exposing C++ functions
     sol::state& GetLuaState() { return m_lua; }
+    ComponentArray<ScriptComponent>* scriptArray;
 
 private:
     sol::state m_lua;
-    EntityManager* m_manager;
     std::vector<std::unique_ptr<Script>> m_scripts;
 };
 
