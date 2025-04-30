@@ -19,11 +19,12 @@ class GameData {
     public:
         GameData() {};
         
-        void SaveEntity(Entity entity, ComponentArray<TransformComponent>* transformArray, ComponentArray<ModelComponent>* modelArray) {
+        void SaveEntity(Entity entity, ComponentArray<TransformComponent>* transformArray, ComponentArray<ModelComponent>* modelArray, ComponentArray<ScriptComponent>* scriptArray) {
             std::string filename = "game/data/" + std::to_string(entity);
 
             TransformComponent* t = transformArray->GetComponent(entity);
             ModelComponent* m = modelArray->GetComponent(entity);
+            ScriptComponent* s = scriptArray->GetComponent(entity);
 
             std::ofstream outFile(filename);
 
@@ -34,6 +35,15 @@ class GameData {
             outFile << vec3ToString(t->scale) << std::endl;
             outFile << "Model" << std::endl;
             outFile << m->filename << std::endl;
+
+            if (s) {
+                outFile << "Script" << std::endl;
+                outFile << s->filename << std::endl;
+            }
+            else {
+                outFile << "Script" << std::endl;
+                outFile << "" << std::endl;
+            }
 
             outFile.close();
         }
@@ -115,7 +125,7 @@ class GameData {
                 if (line_number == 7) {
                     lines.push_back(line);
                 }
-                // Stop reading after the 5th line
+                // Stop reading after the 7th line
                 if (line_number > 7) {
                     break;
                 }
@@ -128,6 +138,37 @@ class GameData {
             return filename;
         }
 
+        std::string LoadEntityScript(Entity entity) {
+            std::string filepath = "data/" + std::to_string(entity);
+
+            std::ifstream file(filepath);
+            if (!file.is_open()) {
+                std::cerr << "Failed to open the file!" << std::endl;
+            }
+
+            // Vector to store the lines
+            std::vector<std::string> lines;
+            std::string line;
+
+            // Read lines from the file
+            int line_number = 0;
+            while (std::getline(file, line)) {
+                line_number++;
+                if (line_number == 9) {
+                    lines.push_back(line);
+                }
+                // Stop reading after the 5th line
+                if (line_number > 9) {
+                    break;
+                }
+            }
+
+            // Close the file
+            file.close();
+
+            std::string filename = lines[0];
+            return filename;
+        }
 
         void replaceStringsInFile(const std::string& inputFilePath, const std::string& outputFilePath, const std::vector<std::string>& searchStrs, const std::vector<std::string>& replaceStrs) {
             // Check if the search and replace vectors have the same size

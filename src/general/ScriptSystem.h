@@ -7,6 +7,8 @@
 #include "../structs.cpp"
 #include "System.cpp"
 #include "ComponentManager.cpp"
+#include "ScriptComponent.cpp"
+#include "Script.h"
 
 class ScriptSystem: public System {
 public:

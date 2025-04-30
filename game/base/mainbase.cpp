@@ -129,7 +129,13 @@ int main() {
         engine.scene->entities.insert(entity);
         engine.renderSystem->entities.insert(entity);
         engine.transformSystem->entities.insert(entity);
+
+        std::string script_filename = gamedata.LoadEntityScript(entity);
+        engine.scriptComponents->AddComponent(entity, {entity, script_filename});
+        engine.scriptSystem->AddScript(entity, script_filename);
     }
+
+    engine.scriptSystem->ReloadAllScripts();
     
     renderLoop(engine);
 

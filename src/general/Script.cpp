@@ -7,7 +7,7 @@ Script::Script(uint32_t entity, const std::string& filename, Engine* engine)
 }
 
 void Script::Load() {
-    sol::state& lua = m_engine->scriptSystem.GetLuaState();
+    sol::state& lua = m_engine->scriptSystem->GetLuaState();
     
     try {
         // Create environment for this script

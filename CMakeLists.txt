@@ -34,6 +34,14 @@ set(SOURCES
     src/general/scene.h
     src/general/scene.cpp
     src/general/GameData.cpp
+    src/general/ScriptSystem.h
+    src/general/ScriptSystem.cpp
+    src/general/Script.h
+    src/general/Script.cpp
+    src/general/ScriptComponent.cpp
+    src/general/EntityDataComponent.cpp
+    src/general/API.cpp
+    src/general/Engine.cpp
     src/graphics/model.h
     src/graphics/model.cpp
     src/graphics/shader.h
