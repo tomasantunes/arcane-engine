@@ -1,41 +1,46 @@
 #include "Script.h"
-#include "EntityManager.cpp"
-#include <iostream>
+#include "ScriptSystem.h"  // Only include ScriptSystem header
 
-Script::Script(uint32_t entity, const std::string& filename, Engine* engine)
-    : m_entity(entity), m_filename(filename), m_engine(engine) {
+// Forward declarations for any engine types you need to expose
+class TransformComponent;  // Example component
+
+Script::Script(ScriptSystem* system, uint32_t entity, const std::string& filename)
+    : m_system(system), m_entity(entity), m_filename(filename) {
 }
 
 void Script::Load() {
-    sol::state& lua = m_engine->scriptSystem->GetLuaState();
+    auto& lua = m_system->GetLuaState();
     
     try {
-        // Create environment for this script
         m_env = sol::environment(lua, sol::create, lua.globals());
-        
-        // Load the script file
+        ExposeEngineAPI();
         lua.script_file(m_filename, m_env);
         
-        // Call load function if it exists
-        sol::function loadFunc = m_env["load"];
-        if (loadFunc) {
-            loadFunc(m_entity);  // Pass entity ID to load function
+        if (auto loadFunc = m_env["load"]; loadFunc) {
+            loadFunc(m_entity);
         }
         
-        // Store update function if it exists
         m_updateFunc = m_env["update"];
         m_hasUpdate = m_updateFunc.valid();
+        
     } catch (const sol::error& e) {
-        std::cerr << "Script error in " << m_filename << ": " << e.what() << std::endl;
+        // Error handling...
     }
 }
 
 void Script::Update(float deltaTime) {
     if (m_hasUpdate) {
         try {
-            m_updateFunc(m_entity, deltaTime);  // Pass entity ID and delta time
+            m_updateFunc(m_entity, deltaTime);
         } catch (const sol::error& e) {
-            std::cerr << "Update error in " << m_filename << ": " << e.what() << std::endl;
+            // Error handling...
         }
     }
+}
+
+void Script::ExposeEngineAPI() {
+    // Or expose basic functions directly
+    m_env["log"] = [](const std::string& msg) {
+        std::cout << "[LUA] " << msg << std::endl;
+    };
 }

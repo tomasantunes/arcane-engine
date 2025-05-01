@@ -1,10 +1,9 @@
 #include "ScriptSystem.h"
-#include "EntityManager.cpp"
 #include "Script.h"
-#include <iostream>
+#include "ScriptComponent.cpp"
 
 ScriptSystem::ScriptSystem() {
-    // Initialize Lua state with common libraries
+    // Only initialize Lua here
     m_lua.open_libraries(
         sol::lib::base,
         sol::lib::package,
@@ -12,20 +11,11 @@ ScriptSystem::ScriptSystem() {
         sol::lib::string,
         sol::lib::table
     );
-    
-    // Expose basic engine functionality to Lua
-    m_lua["print"] = [](const std::string& msg) {
-        std::cout << "[LUA] " << msg << std::endl;
-    };
 }
 
-ScriptSystem::~ScriptSystem() {
-    m_scripts.clear();
-}
-
-void ScriptSystem::AddScript(uint32_t entity, const std::string& filename) {
-    m_scripts.emplace_back(std::make_unique<Script>(entity, filename));
-    m_scripts.back()->Load();
+void ScriptSystem::Initialize(Engine* engine) {
+    m_engine = engine;
+    // Any other engine-dependent initialization
 }
 
 void ScriptSystem::Update(float deltaTime) {
@@ -35,7 +25,18 @@ void ScriptSystem::Update(float deltaTime) {
 }
 
 void ScriptSystem::ReloadAllScripts() {
-    for (auto& script : m_scripts) {
-        script->Load();
+    m_scripts.clear();
+    
+    if (!m_engine || !m_engine->scriptComponents) return;
+    
+    // Assuming your component array has a way to iterate
+    for (size_t i = 0; i < m_engine->scriptComponents->size(); ++i) {
+        auto& comp = (*m_engine->scriptComponents)[i];
+        if (comp.filename.empty()) continue;
+        
+        m_scripts.emplace_back(
+            std::make_unique<Script>(m_engine, comp.entity, comp.filename)
+        );
+        m_scripts.back()->Load();
     }
 }

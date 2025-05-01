@@ -28,7 +28,6 @@
 #include "src/graphics/RenderSystem.cpp"
 #include "src/graphics/TransformSystem.cpp"
 #include "src/graphics/Camera.cpp"
-#include "scripts/scripts.h"
 
 int size_w = 1280;
 int size_h = 768;
@@ -97,9 +96,8 @@ int main() {
     engine.transformSystem = &transformSystem;
     engine.transformSystem->transformArray = engine.transformComponents;
 
-    ScriptSystem scriptSystem;
+    ScriptSystem scriptSystem(&engine);
     engine.scriptSystem = &scriptSystem;
-    engine.scriptSystem->scriptArray = engine.scriptComponents;
 
     engine.scene->entityDataArray = engine.entityDataComponents;
 
@@ -132,7 +130,7 @@ int main() {
 
         std::string script_filename = gamedata.LoadEntityScript(entity);
         engine.scriptComponents->AddComponent(entity, {entity, script_filename});
-        engine.scriptSystem->AddScript(entity, script_filename);
+        engine.scriptSystem->AddScript(entity, script_filename, engine.scriptSystem);
     }
 
     engine.scriptSystem->ReloadAllScripts();
