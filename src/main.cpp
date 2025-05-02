@@ -99,7 +99,7 @@ int main() {
 
     sol::state lua;
     lua.open_libraries(sol::lib::base);
-    lua.script("print('Hello from fixed setup!')");
+    lua.script("print('Hello from Lua!')");
 
     engine.mode = "editor";
     Camera camera;
@@ -140,10 +140,6 @@ int main() {
     TransformSystem transformSystem;
     engine.transformSystem = &transformSystem;
     engine.transformSystem->transformArray = engine.transformComponents;
-
-    ScriptSystem scriptSystem;
-    engine.scriptSystem = &scriptSystem;
-    engine.scriptSystem->scriptArray = engine.scriptComponents;
 
     engine.scene->entityDataArray = engine.entityDataComponents;
 

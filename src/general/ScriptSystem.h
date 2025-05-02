@@ -2,20 +2,20 @@
 #include <vector>
 #include <memory>
 #include <sol/sol.hpp>
+#include "System.cpp"
+#include "ComponentManager.cpp"
+#include "ScriptComponent.cpp"
 
-class Engine;
-
-class ScriptSystem {
+class ScriptSystem: public System {
 public:
-    ScriptSystem(Engine* engine);
+    ScriptSystem(sol::state* e_lua);
+
+    ComponentArray<ScriptComponent>* scriptArray;
     
     void Update(float deltaTime);
     void ReloadAllScripts();
-    
-    sol::state& GetLuaState() { return m_lua; }
 
 private:
-    Engine* m_engine;
-    sol::state m_lua;
-    std::vector<std::unique_ptr<Script>> m_scripts;
+    sol::state* m_lua;
+
 };

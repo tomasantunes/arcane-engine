@@ -11,6 +11,7 @@
 #include <iostream>
 #include <fstream>
 #include <filesystem>
+#include "ScriptComponent.cpp"
 
 namespace fs = std::filesystem;
 

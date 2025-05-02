@@ -1,13 +1,11 @@
 #pragma once
 #include <sol/sol.hpp>
 #include <string>
-
-// Forward declarations
-class ScriptSystem;  // Only need ScriptSystem, not full Engine
+#include "../structs.cpp"
 
 class Script {
 public:
-    Script(ScriptSystem* system, uint32_t entity, const std::string& filename);
+    Script(sol::state* e_lua, Entity entity, const std::string& filename);
     
     void Load();
     void Update(float deltaTime);
@@ -21,8 +19,8 @@ public:
     Script& operator=(Script&&) = default;
 
 private:
-    ScriptSystem* m_system;
-    uint32_t m_entity;
+    sol::state* m_lua;
+    Entity m_entity;
     std::string m_filename;
     
     sol::environment m_env;

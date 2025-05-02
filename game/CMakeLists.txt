@@ -20,7 +20,7 @@ include_directories(${CMAKE_SOURCE_DIR}/lib/ImGuiFileDialog)
 
 # Source files
 set(SOURCES
-    main.cpp
+    src/main.cpp
     src/constants.cpp
     src/structs.cpp
     src/general/EntityManager.cpp
@@ -46,7 +46,6 @@ set(SOURCES
     lib/imgui/backends/imgui_impl_opengl3.cpp
     lib/ImGuiFileDialog/ImGuiFileDialog.h
     lib/ImGuiFileDialog/ImGuiFileDialog.cpp
-    scripts/scripts.h
 )
 
 set(SCRIPT_SRC "")

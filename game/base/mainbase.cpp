@@ -28,6 +28,7 @@
 #include "src/graphics/RenderSystem.cpp"
 #include "src/graphics/TransformSystem.cpp"
 #include "src/graphics/Camera.cpp"
+#include <sol/sol.hpp>
 
 int size_w = 1280;
 int size_h = 768;
@@ -40,6 +41,7 @@ static int selected_entity_idx = 0;
 std::vector<Script> scripts;
 Entity selected_entity = 0;
 Engine engine;
+sol::state m_lua;
 
 void setupGLFW();
 GLFWwindow* createWindow(int width, int height, const char* title);
@@ -55,6 +57,14 @@ int main() {
     engine.window = window;
 
     setupImGui(engine.window);
+
+    m_lua.open_libraries(
+        sol::lib::base,
+        sol::lib::package,
+        sol::lib::math,
+        sol::lib::string,
+        sol::lib::table
+    );
 
     engine.mode = "game";
     Camera camera;
@@ -96,7 +106,7 @@ int main() {
     engine.transformSystem = &transformSystem;
     engine.transformSystem->transformArray = engine.transformComponents;
 
-    ScriptSystem scriptSystem(&engine);
+    ScriptSystem scriptSystem(&m_lua);
     engine.scriptSystem = &scriptSystem;
 
     engine.scene->entityDataArray = engine.entityDataComponents;
@@ -130,7 +140,6 @@ int main() {
 
         std::string script_filename = gamedata.LoadEntityScript(entity);
         engine.scriptComponents->AddComponent(entity, {entity, script_filename});
-        engine.scriptSystem->AddScript(entity, script_filename, engine.scriptSystem);
     }
 
     engine.scriptSystem->ReloadAllScripts();

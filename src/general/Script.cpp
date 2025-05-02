@@ -1,20 +1,15 @@
 #include "Script.h"
-#include "ScriptSystem.h"  // Only include ScriptSystem header
+#include "ScriptSystem.h"
 
-// Forward declarations for any engine types you need to expose
-class TransformComponent;  // Example component
-
-Script::Script(ScriptSystem* system, uint32_t entity, const std::string& filename)
-    : m_system(system), m_entity(entity), m_filename(filename) {
+Script::Script(sol::state* e_lua, Entity entity, const std::string& filename)
+    : m_lua(e_lua), m_entity(entity), m_filename(filename) {
 }
 
 void Script::Load() {
-    auto& lua = m_system->GetLuaState();
-    
     try {
-        m_env = sol::environment(lua, sol::create, lua.globals());
+        m_env = sol::environment(*m_lua, sol::create, m_lua->globals());
         ExposeEngineAPI();
-        lua.script_file(m_filename, m_env);
+        m_lua->script_file(m_filename, m_env);
         
         if (auto loadFunc = m_env["load"]; loadFunc) {
             loadFunc(m_entity);
@@ -24,7 +19,7 @@ void Script::Load() {
         m_hasUpdate = m_updateFunc.valid();
         
     } catch (const sol::error& e) {
-        // Error handling...
+        std::cout << "LUA ERROR" << std::endl;
     }
 }
 
@@ -33,14 +28,13 @@ void Script::Update(float deltaTime) {
         try {
             m_updateFunc(m_entity, deltaTime);
         } catch (const sol::error& e) {
-            // Error handling...
+            std::cout << "LUA ERROR" << std::endl;
         }
     }
 }
 
 void Script::ExposeEngineAPI() {
-    // Or expose basic functions directly
-    m_env["log"] = [](const std::string& msg) {
+    m_env["print"] = [](const std::string& msg) {
         std::cout << "[LUA] " << msg << std::endl;
     };
 }
