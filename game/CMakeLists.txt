@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD 17)
 find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(assimp REQUIRED)
+find_package(Lua 5.3 REQUIRED)
 
 # Include directories
 include_directories(
@@ -16,11 +17,13 @@ include_directories(
 include_directories(${CMAKE_SOURCE_DIR}/lib/imgui)
 include_directories(${CMAKE_SOURCE_DIR}/lib/imgui/backends)
 include_directories(${CMAKE_SOURCE_DIR}/lib/ImGuiFileDialog)
+include_directories(${LUA_INCLUDE_DIR})
+include_directories(${CMAKE_SOURCE_DIR}/lib)
 
 
 # Source files
 set(SOURCES
-    src/main.cpp
+    main.cpp
     src/constants.cpp
     src/structs.cpp
     src/general/EntityManager.cpp
@@ -29,6 +32,14 @@ set(SOURCES
     src/general/scene.h
     src/general/scene.cpp
     src/general/GameData.cpp
+    src/general/ScriptSystem.h
+    src/general/ScriptSystem.cpp
+    src/general/Script.h
+    src/general/Script.cpp
+    src/general/ScriptComponent.cpp
+    src/general/EntityDataComponent.cpp
+    src/general/API.cpp
+    src/general/Engine.cpp
     src/graphics/model.h
     src/graphics/model.cpp
     src/graphics/shader.h
@@ -46,6 +57,9 @@ set(SOURCES
     lib/imgui/backends/imgui_impl_opengl3.cpp
     lib/ImGuiFileDialog/ImGuiFileDialog.h
     lib/ImGuiFileDialog/ImGuiFileDialog.cpp
+    lib/sol/config.hpp
+    lib/sol/forward.hpp
+    lib/sol/sol.hpp
 )
 
 set(SCRIPT_SRC "")
@@ -55,7 +69,7 @@ file(GLOB SCRIPT_SRC "scripts/*.cpp")
 add_executable(Game ${SOURCES} ${SCRIPT_SRC})
 
 # Link libraries
-target_link_libraries(Game PRIVATE glfw OpenGL::GL GLU GLEW assimp::assimp)
+target_link_libraries(Game PRIVATE glfw OpenGL::GL GLU GLEW assimp::assimp ${LUA_LIBRARIES})
 
 file(COPY data DESTINATION .)
 file(COPY models DESTINATION .)

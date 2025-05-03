@@ -397,8 +397,6 @@ void SaveGame() {
     for (Entity entity : engine.transformSystem->entities) {
         gamedata.SaveEntity(entity, engine.transformComponents, engine.modelComponents, engine.scriptComponents);
     }
-
-    std::vector<EntityDataComponent*> components = engine.scene->ListEntityData();
 }
 
 void renderLoop(Engine engine) {

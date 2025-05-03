@@ -20,7 +20,6 @@
 #include "src/general/ScriptComponent.cpp"
 #include "src/general/ScriptSystem.h"
 #include "src/general/GameData.cpp"
-#include "src/general/Script.cpp"
 #include "src/general/scene.h"
 #include "src/graphics/model.h"
 #include "src/graphics/shader.h"
@@ -38,7 +37,6 @@ bool cameraActive = false; // Tracks whether the camera is active
 bool cursorLocked = false; // Tracks whether the cursor is locked
 double lastMouseX = 0.0, lastMouseY = 0.0; // Stores the last mouse position
 static int selected_entity_idx = 0;
-std::vector<Script> scripts;
 Entity selected_entity = 0;
 Engine engine;
 sol::state m_lua;
@@ -134,9 +132,11 @@ int main() {
         Model myModel1("models/" + filename);
         engine.modelComponents->AddComponent(entity, {&myModel1, filename});
         engine.entityDataComponents->AddComponent(entity, {entity, "Entity" + std::to_string(entity)});
+        
         engine.scene->entities.insert(entity);
         engine.renderSystem->entities.insert(entity);
         engine.transformSystem->entities.insert(entity);
+        engine.scriptSystem->entities.insert(entity);
 
         std::string script_filename = gamedata.LoadEntityScript(entity);
         engine.scriptComponents->AddComponent(entity, {entity, script_filename});
