@@ -15,8 +15,9 @@ void ScriptSystem::Update(float deltaTime) {
 }
 
 void ScriptSystem::ReloadAllScripts() {
-
+    std::cout << "ReloadAllScripts" << std::endl;
     for (Entity entity : entities) {
+        std::cout << "For loop entered" << std::endl;
         ScriptComponent* s = scriptArray->GetComponent(entity);
         Script script(m_lua, entity, s->filename);
         script.Load();

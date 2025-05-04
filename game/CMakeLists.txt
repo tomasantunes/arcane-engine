@@ -73,6 +73,7 @@ target_link_libraries(Game PRIVATE glfw OpenGL::GL GLU GLEW assimp::assimp ${LUA
 
 file(COPY data DESTINATION .)
 file(COPY models DESTINATION .)
+file(COPY scripts DESTINATION .)
 
 # Create a 'shaders' directory in the build folder
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/shaders)

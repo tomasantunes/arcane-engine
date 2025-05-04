@@ -9,7 +9,7 @@ void Script::Load() {
     try {
         m_env = sol::environment(*m_lua, sol::create, m_lua->globals());
         ExposeEngineAPI();
-        m_lua->script_file(m_filename, m_env);
+        m_lua->script_file("scripts/" + m_filename, m_env);
         
         if (auto loadFunc = m_env["load"]; loadFunc) {
             loadFunc(m_entity);

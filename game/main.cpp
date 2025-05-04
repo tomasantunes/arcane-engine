@@ -106,6 +106,7 @@ int main() {
 
     ScriptSystem scriptSystem(&m_lua);
     engine.scriptSystem = &scriptSystem;
+    engine.scriptSystem->scriptArray = engine.scriptComponents;
 
     engine.scene->entityDataArray = engine.entityDataComponents;
 
@@ -132,7 +133,7 @@ int main() {
         Model myModel1("models/" + filename);
         engine.modelComponents->AddComponent(entity, {&myModel1, filename});
         engine.entityDataComponents->AddComponent(entity, {entity, "Entity" + std::to_string(entity)});
-        
+
         engine.scene->entities.insert(entity);
         engine.renderSystem->entities.insert(entity);
         engine.transformSystem->entities.insert(entity);
