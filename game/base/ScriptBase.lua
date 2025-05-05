@@ -1,7 +1,7 @@
-function load()
+function load(entity)
     print("Script loaded!")
 end
 
-function update(dt)
+function update(entity, deltaTime)
 
 end

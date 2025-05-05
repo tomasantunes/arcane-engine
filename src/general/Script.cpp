@@ -9,17 +9,37 @@ void Script::Load() {
     try {
         m_env = sol::environment(*m_lua, sol::create, m_lua->globals());
         ExposeEngineAPI();
-        m_lua->script_file("scripts/" + m_filename, m_env);
         
-        if (auto loadFunc = m_env["load"]; loadFunc) {
-            loadFunc(m_entity);
+        // Load the script file into the environment
+        auto result = m_lua->script_file("scripts/" + m_filename, m_env);
+        if (!result.valid()) {
+            sol::error err = result;
+            std::cerr << "Failed to load script: " << err.what() << std::endl;
+            return;
+        }
+
+        // Check for load function (must be a function if it exists)
+        sol::object loadObj = m_env["load"];
+        if (loadObj.is<sol::function>()) {
+            sol::function loadFunc = loadObj;
+            auto loadResult = loadFunc(m_entity);
+            if (!loadResult.valid()) {
+                sol::error err = loadResult;
+                std::cerr << "load function error: " << err.what() << std::endl;
+            }
+        }
+
+        // Check for update function
+        sol::object updateObj = m_env["update"];
+        if (updateObj.is<sol::function>()) {
+            m_updateFunc = updateObj;
+            m_hasUpdate = true;
+        } else {
+            m_hasUpdate = false;
         }
         
-        m_updateFunc = m_env["update"];
-        m_hasUpdate = m_updateFunc.valid();
-        
     } catch (const sol::error& e) {
-        std::cout << "LUA ERROR" << std::endl;
+        std::cerr << "LUA ERROR: " << e.what() << std::endl;
     }
 }
 
