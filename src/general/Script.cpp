@@ -34,8 +34,10 @@ void Script::Load() {
         if (updateObj.is<sol::function>()) {
             m_updateFunc = updateObj;
             m_hasUpdate = true;
+            std::cout << "Script has update function." << std::endl;
         } else {
             m_hasUpdate = false;
+            std::cout << "Script doesn't have update function." << std::endl;
         }
         
     } catch (const sol::error& e) {
@@ -44,12 +46,18 @@ void Script::Load() {
 }
 
 void Script::Update(float deltaTime) {
-    if (m_hasUpdate) {
-        try {
-            m_updateFunc(m_entity, deltaTime);
-        } catch (const sol::error& e) {
-            std::cout << "LUA ERROR" << std::endl;
+    if (!m_hasUpdate) {
+        return;
+    }
+    
+    try {
+        auto result = m_updateFunc(m_entity, deltaTime);
+        if (!result.valid()) {
+            sol::error err = result;
+            std::cerr << "update function error: " << err.what() << std::endl;
         }
+    } catch (const sol::error& e) {
+        std::cerr << "LUA ERROR: " << e.what() << std::endl;
     }
 }
 

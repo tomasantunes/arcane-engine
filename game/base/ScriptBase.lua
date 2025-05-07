@@ -3,5 +3,5 @@ function load(entity)
 end
 
 function update(entity, deltaTime)
-
+    print("Script updated!")
 end

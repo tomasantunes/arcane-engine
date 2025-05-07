@@ -137,10 +137,10 @@ int main() {
         engine.scene->entities.insert(entity);
         engine.renderSystem->entities.insert(entity);
         engine.transformSystem->entities.insert(entity);
-        engine.scriptSystem->entities.insert(entity);
 
         std::string script_filename = gamedata.LoadEntityScript(entity);
         engine.scriptComponents->AddComponent(entity, {entity, script_filename});
+        engine.scriptSystem->AddScript(entity, script_filename);
     }
 
     engine.scriptSystem->ReloadAllScripts();
@@ -212,6 +212,8 @@ void renderLoop(Engine engine) {
         // Bind framebuffer to render scene
         glViewport(0, 0, size_w, size_h);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        engine.scriptSystem->Update(deltaTime);
 
         engine.transformSystem->Update(deltaTime);
         engine.renderSystem->camera = engine.camera;
