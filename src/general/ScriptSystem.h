@@ -2,6 +2,7 @@
 #include <vector>
 #include <memory>
 #include <sol/sol.hpp>
+#include "Engine.cpp"
 #include "System.cpp"
 #include "ComponentManager.cpp"
 #include "ScriptComponent.cpp"

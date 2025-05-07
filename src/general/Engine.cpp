@@ -6,12 +6,13 @@
 #include "../graphics/shader.h"
 #include "EntityManager.cpp"
 #include "ComponentManager.cpp"
-#include "ScriptSystem.h"
 #include "../graphics/RenderSystem.cpp"
 #include "../graphics/TransformSystem.cpp"
 #include "../graphics/Camera.cpp"
 #include "ScriptComponent.cpp"
 #include "scene.h"
+
+class ScriptSystem;
 
 class Engine {
     public:
