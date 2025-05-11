@@ -2,10 +2,12 @@
 #include <sol/sol.hpp>
 #include <string>
 #include "../structs.cpp"
+#include "ScriptSystem.h"
+#include "../graphics/TransformSystem.cpp"
 
 class Script {
 public:
-    Script(sol::state* e_lua, Entity entity, const std::string& filename);
+    Script(sol::state* e_lua, Engine* engine,  Entity entity, const std::string& filename);
     
     void Load();
     void Update(float deltaTime);
@@ -20,6 +22,7 @@ public:
 
 private:
     sol::state* m_lua;
+    Engine* m_engine;
     Entity m_entity;
     std::string m_filename;
     

@@ -1,8 +1,7 @@
 #include "Script.h"
-#include "ScriptSystem.h"
 
-Script::Script(sol::state* e_lua, Entity entity, const std::string& filename)
-    : m_lua(e_lua), m_entity(entity), m_filename(filename) {
+Script::Script(sol::state* e_lua, Engine* engine, Entity entity, const std::string& filename)
+    : m_lua(e_lua), m_engine(engine), m_entity(entity), m_filename(filename) {
 }
 
 void Script::Load() {
@@ -65,4 +64,16 @@ void Script::ExposeEngineAPI() {
     m_env["print"] = [](const std::string& msg) {
         std::cout << "[LUA] " << msg << std::endl;
     };
+
+    m_lua->new_usertype<TransformSystem>("TransformSystem",
+        "updateTransforms", &TransformSystem::SetTransform
+    );
+
+    m_lua->set_function("getTransform", [this](Entity entity) -> sol::reference {
+        TransformComponent* tc = m_engine->transformComponents->GetComponent(entity);
+        if (!tc) {
+            return sol::lua_nil;
+        }
+        return sol::make_reference(m_lua->lua_state(), std::ref(*tc));
+    });
 }
