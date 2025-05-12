@@ -65,6 +65,23 @@ void Script::ExposeEngineAPI() {
         std::cout << "[LUA] " << msg << std::endl;
     };
 
+    m_lua->new_usertype<TransformComponent>("TransformComponent",
+        sol::constructors<TransformComponent()>(),
+        
+        // Properties
+        "transform", sol::property(
+            [](TransformComponent& tc, sol::this_state L) { 
+                return mat4_to_table(L, tc.transform); 
+            },
+            [](TransformComponent& tc, sol::table m) { 
+                tc.transform = table_to_mat4(m);
+            }
+        ),
+        "position", &TransformComponent::position,
+        "rotation", &TransformComponent::rotation,
+        "scale", &TransformComponent::scale
+    );
+
     m_lua->new_usertype<TransformSystem>("TransformSystem",
         "updateTransforms", &TransformSystem::SetTransform
     );
@@ -75,5 +92,19 @@ void Script::ExposeEngineAPI() {
             return sol::lua_nil;
         }
         return sol::make_reference(m_lua->lua_state(), std::ref(*tc));
+    });
+
+    m_lua->set_function("setTransform", [this](Entity entity, sol::object transformObj) {
+        TransformComponent* tc = m_engine->transformComponents->GetComponent(entity);
+        if (!tc) {
+            luaL_error(m_lua->lua_state(), "Entity has no TransformComponent");
+            return;
+        }
+    
+        if (transformObj.is<TransformComponent>()) {
+            *tc = transformObj.as<TransformComponent>();
+        } else {
+            luaL_error(m_lua->lua_state(), "Expected TransformComponent");
+        }
     });
 }

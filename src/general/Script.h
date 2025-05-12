@@ -4,6 +4,7 @@
 #include "../structs.cpp"
 #include "ScriptSystem.h"
 #include "../graphics/TransformSystem.cpp"
+#include "ScriptHelperFunctions.cpp"
 
 class Script {
 public:
