@@ -104,7 +104,7 @@ int main() {
     engine.transformSystem = &transformSystem;
     engine.transformSystem->transformArray = engine.transformComponents;
 
-    ScriptSystem scriptSystem(&m_lua);
+    ScriptSystem scriptSystem(&m_lua, &engine);
     engine.scriptSystem = &scriptSystem;
     engine.scriptSystem->scriptArray = engine.scriptComponents;
 

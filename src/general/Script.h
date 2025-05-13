@@ -2,9 +2,9 @@
 #include <sol/sol.hpp>
 #include <string>
 #include "../structs.cpp"
-#include "ScriptSystem.h"
 #include "../graphics/TransformSystem.cpp"
-#include "ScriptHelperFunctions.cpp"
+#include "ScriptHelperFunctions.h"
+#include "Engine.cpp"
 
 class Script {
 public:

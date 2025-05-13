@@ -39,6 +39,7 @@ set(SOURCES
     src/general/Script.h
     src/general/Script.cpp
     src/general/ScriptComponent.cpp
+    src/general/ScriptHelperFunctions.h
     src/general/EntityDataComponent.cpp
     src/general/API.cpp
     src/general/Engine.cpp

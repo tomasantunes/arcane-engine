@@ -10,7 +10,7 @@
 
 class ScriptSystem: public System {
 public:
-    ScriptSystem(sol::state* e_lua);
+    ScriptSystem(sol::state* e_lua, Engine* e_engine);
 
     ComponentArray<ScriptComponent>* scriptArray;
     std::unordered_map<Entity, std::shared_ptr<Script>> m_scripts;
@@ -21,5 +21,6 @@ public:
 
 private:
     sol::state* m_lua;
+    Engine* m_engine;
 
 };
