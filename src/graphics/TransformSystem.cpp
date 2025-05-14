@@ -15,8 +15,13 @@ class TransformSystem : public System {
 
         void SetTransform() {
             for (Entity entity : entities) {
-                TransformComponent* transform = transformArray->GetComponent(entity);
+                UpdateEntityTransform(entity);
+            }
+        }
 
+        void UpdateEntityTransform(Entity entity) {
+            if (entities.find(entity) != entities.end()) {
+                TransformComponent* transform = transformArray->GetComponent(entity);
                 if (transform) {
                     transform->transform = glm::translate(glm::mat4(1.0f), transform->position);
                     transform->transform = glm::rotate(

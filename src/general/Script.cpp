@@ -94,17 +94,38 @@ void Script::ExposeEngineAPI() {
         return sol::make_reference(m_lua->lua_state(), std::ref(*tc));
     });
 
-    m_lua->set_function("setTransform", [this](Entity entity, sol::object transformObj) {
+    m_lua->set_function("setTransform", [this](Entity entity, sol::table transformData) {
         TransformComponent* tc = m_engine->transformComponents->GetComponent(entity);
-        if (!tc) {
-            luaL_error(m_lua->lua_state(), "Entity has no TransformComponent");
-            return;
+        
+        auto getVec3FromTable = [](sol::table t, float defaultVal = 0.0f) -> glm::vec3 {
+            return glm::vec3(
+                t[1].get_or(defaultVal),
+                t[2].get_or(defaultVal),
+                t[3].get_or(defaultVal)
+            );
+        };
+    
+        if (transformData["position"].is<sol::table>()) {
+            tc->position = getVec3FromTable(transformData["position"]);
+        }
+        else if (transformData["position"].is<glm::vec3>()) {
+            tc->position = transformData["position"];
         }
     
-        if (transformObj.is<TransformComponent>()) {
-            *tc = transformObj.as<TransformComponent>();
-        } else {
-            luaL_error(m_lua->lua_state(), "Expected TransformComponent");
+        if (transformData["rotation"].is<sol::table>()) {
+            tc->rotation = getVec3FromTable(transformData["rotation"]);
         }
+        else if (transformData["rotation"].is<glm::vec3>()) {
+            tc->rotation = transformData["rotation"];
+        }
+    
+        if (transformData["scale"].is<sol::table>()) {
+            tc->scale = getVec3FromTable(transformData["scale"], 1.0f);
+        }
+        else if (transformData["scale"].is<glm::vec3>()) {
+            tc->scale = transformData["scale"];
+        }
+    
+        m_engine->transformSystem->UpdateEntityTransform(entity);
     });
 }
